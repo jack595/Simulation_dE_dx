@@ -1,0 +1,26 @@
+/control/verbose 1
+/run/verbose 1
+/event/verbose 1
+/tracking/verbose 1
+
+# analysis manager
+#/analysis/setFileName test.root
+
+## Plane mode ##
+# /gps/particle opticalphoton
+# /gps/energy 3.024 eV
+# /gps/pos/type Plane
+# /gps/pos/shape Circle
+# /gps/pos/centre 0 0 19 cm
+# /gps/pos/radius 254 mm
+# /gps/ang/type iso
+# /gps/ang/maxtheta   0 deg
+# /gps/ang/mintheta   90 deg
+
+## Gun mode ##
+/gps/particle gamma
+/gps/energy 1 MeV
+/gps/position 0 100 0 mm
+/gps/direction 0 -1 0 mm
+
+/run/beamOn 20

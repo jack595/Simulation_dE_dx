@@ -1,0 +1,48 @@
+#
+# Macro file for the initialization phase of "Diamond.cc"
+# when running in interactive mode
+#
+# Sets some default verbose
+#
+/control/verbose 1
+/run/verbose 1
+#
+# create empty scene
+#
+/vis/scene/create
+#
+# Create a scene handler for a specific graphics system
+# (Edit the next line(s) to choose another graphic system)
+#
+/vis/open HepRepFile
+# /vis/open DAWNFILE
+# /vis/heprep/setFileName DetectorGeometry
+# /vis/open OGL 600x600-0+0
+#
+# /vis/viewer/set/viewpointThetaPhi 90 0
+/vis/viewer/set/viewpointVector 1 1 1
+/vis/viewer/zoom 3.0
+/vis/viewer/flush
+#
+# for drawing the tracks
+# Draw trajectories at end of event, showing trajectory points as
+# markers of size 2 pixels
+/vis/viewer/set/auxiliaryEdge true
+/vis/scene/add/trajectories
+/vis/modeling/trajectories/create/drawByCharge
+/vis/modeling/trajectories/drawByCharge-0/default/setDrawStepPts true
+/vis/modeling/trajectories/drawByCharge-0/default/setStepPtsSize 2
+
+#/vis/filtering/trajectories/create/particleFilter
+#/vis/filtering/trajectories/particleFilter-0/add neutron
+#/vis/filtering/trajectories/particleFilter-0/invert true
+# (if too many tracks cause core dump => storeTrajectory 0)
+#
+/vis/scene/endOfEventAction accumulate
+#
+# Refresh ready for run
+/vis/viewer/list
+/vis/viewer/refresh
+#
+# Now ready for /run/beamOn.
+/control/execute run.mac
