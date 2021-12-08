@@ -1,15 +1,15 @@
-#include "DsPhysConsOptical.h"
+#include "../include/junoPhysics/DsPhysConsOptical.h"
 
 #include "G4Cerenkov.hh"
-#include "G4Cerenkov_modified.hh"
+#include "../include/junoPhysics/G4Cerenkov_modified.hh"
 #ifdef WITH_G4OPTICKS
 #include "LocalG4Cerenkov1042.hh"
 #endif
 
 #include "G4Scintillation.hh"
-#include "DsG4Scintillation.h"
-#include "DsG4ScintSimple.h"
-#include "DsG4OpAbsReemit.h"
+#include "../include/junoPhysics/DsG4Scintillation.h"
+#include "../include/junoPhysics/DsG4ScintSimple.h"
+#include "../include/junoPhysics/DsG4OpAbsReemit.h"
 
 
 #include "G4OpAbsorption.hh"
@@ -46,6 +46,10 @@ DsPhysConsOptical::DsPhysConsOptical(const G4String& name): G4VPhysicsConstructo
     m_ScintillationYieldFactor = 1.0;
    
     m_enableQuenching=true;
+
+    m_birksConstant1 = 6.5e-3*g/cm2/MeV;
+    m_birksConstant2 = 1.5e-6*(g/cm2/MeV)*(g/cm2/MeV);
+
 
     m_doFastSim=false; // just the fast simulation
 

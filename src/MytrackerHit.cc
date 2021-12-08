@@ -65,6 +65,8 @@ void MytrackerHit::Print()
        << std::setw(7) << G4BestUnit(fEdep,"Energy")
        << " Position: "
        << std::setw(7) << G4BestUnit( fPos,"Length")
+       << " Equench: "
+       << std::setw(7) << G4BestUnit( fEquench,"Energy")
        << G4endl;
 
 }

@@ -5,6 +5,7 @@
 #include "G4SDManager.hh"
 #include "G4ios.hh"
 #include"G4Track.hh"
+#include "../include/JUNOTool.hh"
 
 
 MyTrackerSD::MyTrackerSD(const G4String &name, const G4String &hitsCollectionName)
@@ -33,13 +34,17 @@ G4bool MyTrackerSD::ProcessHits(G4Step *aStep, G4TouchableHistory *)
 {
     G4double edep=aStep->GetTotalEnergyDeposit();
     if(edep==0.) return false;
-    MytrackerHit* newHit=new MytrackerHit();
+    auto newHit=new MytrackerHit();
 
     newHit->SetTrackID(aStep->GetTrack()->GetTrackID());
     newHit->SetChamberNb(aStep->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber());
     newHit->SetEdep(edep);
+    newHit->fEquench = EdepToQquench(aStep);
     newHit->SetPos(aStep->GetPostStepPoint()->GetPosition());
     newHit->SetParticleName(aStep->GetTrack()->GetParticleDefinition()->GetParticleName());
+    newHit->SetPDGID(aStep->GetTrack()->GetParticleDefinition()->GetPDGEncoding());
+    newHit->time = aStep->GetPreStepPoint()->GetGlobalTime();
+    newHit->fStepLength = aStep->GetStepLength();
 
     fHitsCollection->insert(newHit);
 

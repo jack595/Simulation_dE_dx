@@ -38,12 +38,14 @@ void NeutrinoEventAction::EndOfEventAction(const G4Event* anEvent)
         data_extract->RunInitiate();
     }
     else data_extract->GetHCE(HCE);
+
     data_extract->JudgeWhetherHit();
     data_extract->UpdateInformation(anEvent);
 //    data_extract->ShowInformation();
 //    data_extract->PrintHitCollections();
 //    data_extract->DrawEdepCenter();
     data_extract->Fill();
+    data_extract->ResetVariable();
 
     G4cout<<"End of "<<anEvent->GetEventID()<<"th Event..."<<G4endl;
 }

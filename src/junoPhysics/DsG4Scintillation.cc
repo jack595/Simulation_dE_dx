@@ -76,22 +76,6 @@
 #include "G4Electron.hh"
 #include "globals.hh"
 
-#ifdef WITH_G4OPTICKS
-#include "G4Opticks.hh"
-#include "CGenstep.hh"
-#include "CTrack.hh"
-#include "CPhotonInfo.hh"
-#include "PLOG.hh"
-#endif
-
-
-
-#ifdef WITH_G4OPTICKS
-//const plog::Severity DsG4Scintillation::LEVEL = PLOG::EnvLevel("DsG4Scintillation", "DEBUG") ; 
-const plog::Severity DsG4Scintillation::LEVEL = error ; 
-#endif
-
-
 //#include "DsPhotonTrackInfo.h"
 //#include "G4DataHelpers/G4CompositeTrackInfo.h"
 
@@ -115,7 +99,7 @@ using namespace std;
 // Constructors
 /////////////////
 
-DsG4Scintillation::DsG4Scintillation(G4int opticksMode, const G4String& processName,
+DsG4Scintillation::DsG4Scintillation(const G4String& processName,
                                      G4ProcessType type)
     : G4VRestDiscreteProcess(processName, type)
     , doReemission(true)
@@ -131,7 +115,6 @@ DsG4Scintillation::DsG4Scintillation(G4int opticksMode, const G4String& processN
     , fApplyPreQE(false)
     , fPreQE(1.)
     , m_noop(false)
-    , m_opticksMode(opticksMode)
 {
     SetProcessSubType(fScintillation);
     fTrackSecondariesFirst = false;
@@ -270,12 +253,41 @@ DsG4Scintillation::PostStepDoIt(const G4Track& aTrack, const G4Step& aStep)
     if (!aMaterialPropertiesTable)
         return G4VRestDiscreteProcess::PostStepDoIt(aTrack, aStep);
 
-   // G4String FastTimeConstant = "FASTTIMECONSTANT";
-   // G4String SlowTimeConstant = "SLOWTIMECONSTANT";
-   // G4String strYieldRatio = "YIELDRATIO";
+    G4String FastTimeConstant = "FASTTIMECONSTANT";
+    G4String SlowTimeConstant = "SLOWTIMECONSTANT";
+    G4String strYieldRatio = "YIELDRATIO";
 
     // reset the slower time constant and ratio
-   
+    slowerTimeConstant = 0.0;
+    slowerRatio = 0.0;
+    
+    if (aParticleName == "opticalphoton") {
+      FastTimeConstant = "ReemissionFASTTIMECONSTANT";
+      SlowTimeConstant = "ReemissionSLOWTIMECONSTANT";
+      strYieldRatio = "ReemissionYIELDRATIO";
+    }
+    else if(aParticleName == "gamma" || aParticleName == "e+" || aParticleName == "e-") {
+      FastTimeConstant = "GammaFASTTIMECONSTANT";
+      SlowTimeConstant = "GammaSLOWTIMECONSTANT";
+      strYieldRatio = "GammaYIELDRATIO";
+      slowerTimeConstant = gammaSlowerTime;
+      slowerRatio = gammaSlowerRatio;
+    }
+    else if(aParticleName == "alpha") {
+      FastTimeConstant = "AlphaFASTTIMECONSTANT";
+      SlowTimeConstant = "AlphaSLOWTIMECONSTANT";
+      strYieldRatio = "AlphaYIELDRATIO";
+      slowerTimeConstant = alphaSlowerTime;
+      slowerRatio = alphaSlowerRatio;
+    }
+    else {
+      FastTimeConstant = "NeutronFASTTIMECONSTANT";
+      SlowTimeConstant = "NeutronSLOWTIMECONSTANT";
+      strYieldRatio = "NeutronYIELDRATIO";
+      slowerTimeConstant = neutronSlowerTime;
+      slowerRatio = neutronSlowerRatio;
+    }
+
     const G4MaterialPropertyVector* Fast_Intensity = 
         aMaterialPropertiesTable->GetProperty("FASTCOMPONENT"); 
     const G4MaterialPropertyVector* Slow_Intensity =
@@ -289,35 +301,17 @@ DsG4Scintillation::PostStepDoIt(const G4Track& aTrack, const G4Step& aStep)
     if (!Fast_Intensity && !Slow_Intensity )
         return G4VRestDiscreteProcess::PostStepDoIt(aTrack, aStep);
 
-    //-------------find the type of particle------------------------------//
-    /*
-        Find the particle type and register the scintillation time constant corresponding.
-        We save the yield ratio and time constant in the form of G4PhysicVector. In this kind of G4PhysicVector, we interprete Energy as scintillation time and interprete Value as the yield ratio.
-
-    */
-    G4MaterialPropertyVector* Ratio_timeconstant = 0 ;
-    if (aParticleName == "opticalphoton") {
-      Ratio_timeconstant = aMaterialPropertiesTable->GetProperty("OpticalCONSTANT");
+    G4int nscnt = 1;
+    if (Fast_Intensity && Slow_Intensity) nscnt = 2;
+    if ( verboseLevel > 0) {
+      G4cout << " Fast_Intensity " << Fast_Intensity << " Slow_Intensity " << Slow_Intensity << " nscnt " << nscnt << G4endl;
     }
-    else if(aParticleName == "gamma" || aParticleName == "e+" || aParticleName == "e-") {
-      Ratio_timeconstant = aMaterialPropertiesTable->GetProperty("GammaCONSTANT");
-    }
-    else if(aParticleName == "alpha") {
-      Ratio_timeconstant = aMaterialPropertiesTable->GetProperty("AlphaCONSTANT");
-    }
-    else {
-      Ratio_timeconstant = aMaterialPropertiesTable->GetProperty("NeutronCONSTANT");
-    }
-    
-  //-----------------------------------------------------//
-
     G4StepPoint* pPreStepPoint  = aStep.GetPreStepPoint();
     G4StepPoint* pPostStepPoint = aStep.GetPostStepPoint();
 
     G4ThreeVector x0 = pPreStepPoint->GetPosition();
     G4ThreeVector p0 = aStep.GetDeltaPosition().unit();
     G4double      t0 = pPreStepPoint->GetGlobalTime();
-     
 
     //Replace NumPhotons by NumTracks
     G4int NumTracks=0;
@@ -355,7 +349,7 @@ DsG4Scintillation::PostStepDoIt(const G4Track& aTrack, const G4Step& aStep)
         
         G4double ScintillationYield = 0;
         {// Yield.  Material must have this or we lack raisins dayetras
-           /* const G4MaterialPropertyVector* ptable =
+            const G4MaterialPropertyVector* ptable =
                 aMaterialPropertiesTable->GetProperty("SCINTILLATIONYIELD");
             if (!ptable) {
                 G4cout << "ConstProperty: failed to get SCINTILLATIONYIELD"
@@ -363,9 +357,6 @@ DsG4Scintillation::PostStepDoIt(const G4Track& aTrack, const G4Step& aStep)
                 return G4VRestDiscreteProcess::PostStepDoIt(aTrack, aStep);
             }
             ScintillationYield = ptable->Value(0);
-            std::cout<<"sci ScintillationYield = "<<ScintillationYield<<std::endl;*/
-            ScintillationYield = aMaterialPropertiesTable->GetConstProperty("SCINTILLATIONYIELD");
-           // std::cout<<"sci const ScintillationYield = "<<ScintillationYield<<std::endl;
         }
 
         G4double ResolutionScale    = 1;
@@ -444,7 +435,6 @@ DsG4Scintillation::PostStepDoIt(const G4Track& aTrack, const G4Step& aStep)
           G4cout << " Generated " << NumTracks << " scint photons. mean(scint photons) = " << MeanNumberOfTracks << G4endl;
         }
     }
-
     weight*=fPhotonWeight;
     if ( verboseLevel > 0 ) {
       G4cout << " set scint photon weight to " << weight << " after multiplying original weight by fPhotonWeight " << fPhotonWeight 
@@ -479,139 +469,152 @@ DsG4Scintillation::PostStepDoIt(const G4Track& aTrack, const G4Step& aStep)
     // Retrieve the Scintillation Integral for this material  
     // new G4PhysicsOrderedFreeVector allocated to hold CII's
 
-   // G4int Num = NumTracks; //# tracks is now the loop control
-
-   /*
-      Determine the photon number of echo component at first.
-      we determine the photon number by Monte Carlo sampling.
-      reason:  
-      It may lose the little photons if we just use total number times yield ratio when total number is small
-    */
-    size_t nscnt = Ratio_timeconstant->GetVectorLength();
-    std::vector<G4int> NumVec(nscnt);
-    NumVec.clear();
-    for(G4int i = 0 ; i < NumTracks ; i++){
-       G4double p = G4UniformRand();
-       G4double p_count = 0;
-       for(G4int j = 0 ; j < nscnt; j++)
-       {
-            p_count += (*Ratio_timeconstant)[j] ;
-            if( p < p_count ){
-               NumVec[j]++ ;
-               break;
-            }
-        }  
-  
-     }
-
-//-------------------------------------------------//
-
-#ifdef WITH_G4OPTICKS
-    /**
-    * non-optical tracks are not labelled 
-    * optical photon tracks produced by S or C processes are always labelled
-    * optical photon tracks from input_photons (T/torch) process are not labelled
-      as GenTools mutate operates on HepMC objects which get internally converted to Geant4 
-    * thus the below "when_unlabelled_fabricate_trackid_photon" is only appropriate for optical photons
-    **/
-    bool is_optical_track = aTrack.GetDefinition() == G4OpticalPhoton::OpticalPhoton() ;  
-    bool when_unlabelled_fabricate_trackid_photon = is_optical_track  ; 
-    CPho ancestor = CPhotonInfo::Get(&aTrack, when_unlabelled_fabricate_trackid_photon ); 
-    int ancestor_id = ancestor.get_id() ; 
-    /**
-    ancestor_id:-1 
-        normal case, meaning that aTrack was not a photon
-        so the generation loop will yield "primary" photons 
-        with id : gs.offset + i  
-             
-    ancestor_id>-1
-        aTrack is a photon that may be about to reemit (Num=0 or 1) 
-        ancestor_id is the absolute id of the primary parent photon, 
-        this id is retained thru any subsequent remission secondary generations
-    **/
-#endif
-
-//-------------------------------------------------//
-
-    for(G4int scnt = 0 ; scnt < nscnt ; scnt++){
-
-         G4double ScintillationTime = 0.*ns;
-         G4PhysicsOrderedFreeVector* ScintillationIntegral = NULL;
-
-         if ( scnt == 0 ){
-              ScintillationIntegral =
-                    (G4PhysicsOrderedFreeVector*)((*theFastIntegralTable)(materialIndex));
-         }
-         else{
-              ScintillationIntegral =
-                    (G4PhysicsOrderedFreeVector*)((*theSlowIntegralTable)(materialIndex));
-         }         
-       // std::cout<<"scnt == "<<scnt <<"  Num =="<<NumVec[scnt]<<" time =="<<Ratio_timeconstant->Energy(scnt)<<std::endl;    
-    
-       //  G4int m_Num =G4int(NumTracks * (*Ratio_timeconstant)[scnt]);
-         ScintillationTime = Ratio_timeconstant->Energy(scnt);
-         if (!flagDecayTimeFast && scnt == 0){
-               ScintillationTime = 0.*ns  ;
-         }
-
-         if (!flagDecayTimeSlow && scnt != 0){
-
-               ScintillationTime = 0.*ns  ;
-         }
-
-        G4int NumPhoton =  NumVec[scnt] ; 
-
-
-#ifdef WITH_G4OPTICKS
-        if(flagReemission) assert( NumPhoton == 0 || NumPhoton == 1);   // expecting only 0 or 1 remission photons
-        CGenstep gs ; 
-        bool is_opticks_genstep = NumPhoton > 0 && !flagReemission ; 
-        if(is_opticks_genstep && (m_opticksMode & 1))
-        {
-            gs = G4Opticks::Get()->collectGenstep_DsG4Scintillation_r4695( &aTrack, &aStep, NumPhoton, scnt, ScintillationTime); 
+    G4int Num = NumTracks; //# tracks is now the loop control
+        
+    G4double fastTimeConstant = 0.0;
+    if (flagDecayTimeFast) { // Fast Time Constant
+        const G4MaterialPropertyVector* ptable =
+        aMaterialPropertiesTable->GetProperty(FastTimeConstant.c_str());
+        if (verboseLevel > 0) {
+          G4cout << " MaterialPropertyVector table " << ptable << " for FASTTIMECONSTANT"<<G4endl;
         }
-#endif
+        if (!ptable) ptable = aMaterialPropertiesTable->GetProperty("FASTTIMECONSTANT");
+        if (ptable) {
+            fastTimeConstant = ptable->Value(0);
+          if (verboseLevel > 0) { 
+            G4cout << " dump fast time constant table " << G4endl;
+            ptable->DumpValues();
+          }
+        }
+    }
 
-         if( m_opticksMode == 0 || (m_opticksMode & 2) )
-         {
+    G4double slowTimeConstant = 0.0;
+    if (flagDecayTimeSlow) { // Slow Time Constant
+        const G4MaterialPropertyVector* ptable =
+        aMaterialPropertiesTable->GetProperty(SlowTimeConstant.c_str());
+        if (verboseLevel > 0) {
+          G4cout << " MaterialPropertyVector table " << ptable << " for SLOWTIMECONSTANT"<<G4endl;
+        }
+        if(!ptable) ptable = aMaterialPropertiesTable->GetProperty("SLOWTIMECONSTANT");
+        if (ptable){
+          slowTimeConstant = ptable->Value(0);
+          if (verboseLevel > 0) { 
+            G4cout << " dump slow time constant table " << G4endl;
+            ptable->DumpValues();
+          }
+        }
+    }
 
-         for(G4int i = 0 ; i < NumPhoton ; i++) {
-#ifdef WITH_G4OPTICKS
-           G4Opticks::Get()->setAlignIndex( ancestor_id > -1 ? ancestor_id : gs.offset + i );  // aka photon_id
-#endif
-           G4double sampledEnergy;
-           if ( !flagReemission ) {
+    G4double YieldRatio = 0.0;
+    { // Slow Time Constant
+        const G4MaterialPropertyVector* ptable =
+            aMaterialPropertiesTable->GetProperty(strYieldRatio.c_str());
+        if(!ptable) ptable = aMaterialPropertiesTable->GetProperty("YIELDRATIO");
+        if (ptable) {
+            YieldRatio = ptable->Value(0);
+            if (verboseLevel > 0) {
+                G4cout << " YieldRatio = "<< YieldRatio << " and dump yield ratio table (yield ratio = fast/(fast+slow): " << G4endl;
+                (ptable)->DumpValues();
+            }
+        }
+    }
+
+
+    //loop over fast/slow scintillations
+    for (G4int scnt = 1; scnt <= nscnt; scnt++) {
+
+        G4double ScintillationTime = 0.*ns;
+        G4PhysicsOrderedFreeVector* ScintillationIntegral = NULL;
+
+        if (scnt == 1) {//fast
+            if (nscnt == 1) {
+                if(Fast_Intensity){
+                    ScintillationTime   = fastTimeConstant;
+                    ScintillationIntegral =
+                        (G4PhysicsOrderedFreeVector*)((*theFastIntegralTable)(materialIndex));
+                }
+                if(Slow_Intensity){
+                    ScintillationTime   = slowTimeConstant;
+                    ScintillationIntegral =
+                        (G4PhysicsOrderedFreeVector*)((*theSlowIntegralTable)(materialIndex));
+                }
+            }
+            else {
+                if ( ExcitationRatio == 1.0 ) {
+                  Num = G4int( 0.5 +  (min(YieldRatio,1.0) * NumTracks) );  // round off, not truncation
+                }
+                else {
+                  Num = G4int( 0.5 +  (min(ExcitationRatio,1.0) * NumTracks));
+                }
+                if ( verboseLevel>1 ){
+                  G4cout << "Generate Num " << Num << " optical photons with fast component using NumTracks " 
+                         << NumTracks << " YieldRatio " << YieldRatio << " ExcitationRatio " << ExcitationRatio 
+                         << " min(YieldRatio,1.)*NumTracks = " <<  min(YieldRatio,1.)*NumTracks 
+                         << " min(ExcitationRatio,1.)*NumTracks = " <<  min(ExcitationRatio,1.)*NumTracks 
+                         << G4endl;
+                }
+                ScintillationTime   = fastTimeConstant;
+                ScintillationIntegral =
+                    (G4PhysicsOrderedFreeVector*)((*theFastIntegralTable)(materialIndex));
+            }
+        }
+        else {//slow
+            Num = NumTracks - Num;
+            ScintillationTime   =   slowTimeConstant;
+            ScintillationIntegral =
+                (G4PhysicsOrderedFreeVector*)((*theSlowIntegralTable)(materialIndex));
+        }
+        if (verboseLevel > 0) {
+          G4cout << "generate " << Num << " optical photons with scintTime " << ScintillationTime 
+                 << " slowTimeConstant " << slowTimeConstant << " fastTimeConstant " << fastTimeConstant << G4endl;
+        }
+
+        if (!ScintillationIntegral) continue;
+        
+        // Max Scintillation Integral
+                
+        for (G4int i = 0; i < Num; i++) { //Num is # of 2ndary tracks now
+            // Determine photon energy
+
+        if(scnt == 2) {
+            ScintillationTime = slowTimeConstant;
+            if(flagDecayTimeSlow && G4UniformRand() < slowerRatio && (!flagReemission)) ScintillationTime = slowerTimeConstant;
+        }
+
+            G4double sampledEnergy;
+            if ( !flagReemission ) {
                 // normal scintillation
-               G4double CIIvalue = G4UniformRand()*
+                G4double CIIvalue = G4UniformRand()*
                     ScintillationIntegral->GetMaxValue();
-               sampledEnergy=
+                sampledEnergy=
                     ScintillationIntegral->GetEnergy(CIIvalue);
 
-               if (verboseLevel>1) 
+                if (verboseLevel>1) 
                     {
                         G4cout << "sampledEnergy = " << sampledEnergy << G4endl;
                         G4cout << "CIIvalue =        " << CIIvalue << G4endl;
                     }
             }
-         else {
+            else {
                 // reemission, the sample method need modification
                 G4double CIIvalue = G4UniformRand()*
                     ScintillationIntegral->GetMaxValue();
                 if (CIIvalue == 0.0) {
-                    // return unchanged particle and no secondaries 
+                    // return unchanged particle and no secondaries  
                     aParticleChange.SetNumberOfSecondaries(0);
                     return G4VRestDiscreteProcess::PostStepDoIt(aTrack, aStep);
-                   }
+                }
                 sampledEnergy=
                     ScintillationIntegral->GetEnergy(CIIvalue);
                 if (verboseLevel>1) {
                     G4cout << "oldEnergy = " <<aTrack.GetKineticEnergy() << G4endl;
                     G4cout << "reemittedSampledEnergy = " << sampledEnergy
                            << "\nreemittedCIIvalue =        " << CIIvalue << G4endl;
-                   }
-             }
-        
-           // Generate random photon direction
+                }
+            }
+
+            // Generate random photon direction
+
             G4double cost = 1. - 2.*G4UniformRand();
             G4double sint = sqrt((1.-cost)*(1.+cost));
 
@@ -623,10 +626,12 @@ DsG4Scintillation::PostStepDoIt(const G4Track& aTrack, const G4Step& aStep)
             G4double py = sint*sinp;
             G4double pz = cost;
 
-            // Create photon momentum direction vector  
+            // Create photon momentum direction vector 
+
             G4ParticleMomentum photonMomentum(px, py, pz);
 
             // Determine polarization of new photon 
+
             G4double sx = cost*cosp;
             G4double sy = cost*sinp; 
             G4double sz = -sint;
@@ -643,8 +648,8 @@ DsG4Scintillation::PostStepDoIt(const G4Track& aTrack, const G4Step& aStep)
 
             photonPolarization = photonPolarization.unit();
 
-            // Generate a new photon:    
-        
+            // Generate a new photon:
+
             G4DynamicParticle* aScintillationPhoton =
                 new G4DynamicParticle(G4OpticalPhoton::OpticalPhoton(), 
                                       photonMomentum);
@@ -656,6 +661,7 @@ DsG4Scintillation::PostStepDoIt(const G4Track& aTrack, const G4Step& aStep)
             aScintillationPhoton->SetKineticEnergy(sampledEnergy);
 
             // Generate new G4Track object:
+
             G4double rand=0;
             G4ThreeVector aSecondaryPosition;
             G4double deltaTime;
@@ -699,31 +705,40 @@ DsG4Scintillation::PostStepDoIt(const G4Track& aTrack, const G4Step& aStep)
             G4Track* aSecondaryTrack = 
                 new G4Track(aScintillationPhoton,aSecondaryTime,aSecondaryPosition);
 
+            //G4CompositeTrackInfo* comp=new G4CompositeTrackInfo();
+            //DsPhotonTrackInfo* trackinf=new DsPhotonTrackInfo();
+            //if ( flagReemission ){
+            //    if ( reemittedTI ) *trackinf = *reemittedTI;
+            //    trackinf->SetReemitted();
+            //}
+            //else if ( fApplyPreQE ) {
+            //    trackinf->SetMode(DsPhotonTrackInfo::kQEPreScale);
+            //    trackinf->SetQE(fPreQE);
+            //}
+            //comp->SetPhotonTrackInfo(trackinf);
+            //aSecondaryTrack->SetUserInformation(comp);
+                
             aSecondaryTrack->SetWeight( weight );
             aSecondaryTrack->SetTouchableHandle(aStep.GetPreStepPoint()->GetTouchableHandle());
+            // aSecondaryTrack->SetTouchableHandle((G4VTouchable*)0);//this is wrong
+                
             aSecondaryTrack->SetParentID(aTrack.GetTrackID());
+                
             // add the secondary to the ParticleChange object
             aParticleChange.SetSecondaryWeightByProcess( true ); // recommended
             aParticleChange.AddSecondary(aSecondaryTrack);
                 
             aSecondaryTrack->SetWeight( weight );
             if ( verboseLevel > 0 ) {
-              G4cout << " aSecondaryTrack->SetWeight( " << weight<< " ) ; aSecondaryTrack->GetWeight() = " << aSecondaryTrack->GetWeight() << G4endl;}        
-
-#ifdef WITH_G4OPTICKS
-           aSecondaryTrack->SetUserInformation(CPhotonInfo::MakeScintillation(gs, i, ancestor ));  
-           G4Opticks::Get()->setAlignIndex(-1);
-#endif
-
-         }    // i:genloop over NumPhoton
-  
- 
-         }   //  (opticksMode == 0) || (opticksMode & 2 )   : opticks not enabled, or opticks enabled and doing Geant4 comparison
-
-
-   }         // scntloop
-
-
+              G4cout << " aSecondaryTrack->SetWeight( " << weight<< " ) ; aSecondaryTrack->GetWeight() = " << aSecondaryTrack->GetWeight() << G4endl;}
+            // The above line is necessary because AddSecondary() 
+            // overrides our setting of the secondary track weight, 
+            // in Geant4.3.1 & earlier. (and also later, at least 
+            // until Geant4.7 (and beyond?)
+            //  -- maybe not required if SetWeightByProcess(true) called,
+            //  but we do both, just to be sure)
+        }
+    } // end loop over fast/slow scints
 
     if (verboseLevel > 0) {
         G4cout << "\n Exiting from G4Scintillation::DoIt -- NumberOfSecondaries = " 
@@ -732,56 +747,6 @@ DsG4Scintillation::PostStepDoIt(const G4Track& aTrack, const G4Step& aStep)
 
     return G4VRestDiscreteProcess::PostStepDoIt(aTrack, aStep);
 }
-
-
-
-#ifdef WITH_G4OPTICKS
-G4MaterialPropertyVector* DsG4Scintillation::getMaterialProperty(const char* name, G4int materialIndex)
-{
-    const G4MaterialTable* theMaterialTable = G4Material::GetMaterialTable();
-    G4int numOfMaterials = G4Material::GetNumberOfMaterials();
-    assert( materialIndex < numOfMaterials ); 
-
-    G4Material* aMaterial = (*theMaterialTable)[materialIndex];
-    G4MaterialPropertiesTable* aMaterialPropertiesTable = aMaterial->GetMaterialPropertiesTable();
-    G4MaterialPropertyVector* prop = aMaterialPropertiesTable ? aMaterialPropertiesTable->GetProperty(name) : nullptr ;  
-    return prop ; 
-}
-
-G4PhysicsOrderedFreeVector* DsG4Scintillation::getScintillationIntegral(G4int scnt, G4int materialIndex) const
-{
-    G4PhysicsOrderedFreeVector* ScintillationIntegral = NULL;
-
-    if ( scnt == 0 ){
-          ScintillationIntegral =
-                (G4PhysicsOrderedFreeVector*)((*theFastIntegralTable)(materialIndex));
-    }
-    else{
-          ScintillationIntegral =
-                (G4PhysicsOrderedFreeVector*)((*theSlowIntegralTable)(materialIndex));
-    }         
-
-    return ScintillationIntegral ; 
-}
-
-
-G4double DsG4Scintillation::getSampledEnergy(G4int scnt, G4int materialIndex) const 
-{
-    G4PhysicsOrderedFreeVector* ScintillationIntegral = getScintillationIntegral(scnt, materialIndex); 
-    G4double CIIvalue = G4UniformRand()*ScintillationIntegral->GetMaxValue();
-    G4double sampledEnergy = ScintillationIntegral->GetEnergy(CIIvalue);
-    return sampledEnergy ; 
-}
-
-G4double DsG4Scintillation::getSampledWavelength(G4int scnt, G4int materialIndex) const
-{
-    G4double sampledEnergy = getSampledEnergy(scnt, materialIndex ); 
-    G4double wavelength = h_Planck*c_light/sampledEnergy ; 
-    G4double wavelength_nm = wavelength/nm ; 
-    return wavelength_nm ; 
-}
-#endif
-
 
 // BuildThePhysicsTable for the scintillation process
 // --------------------------------------------------

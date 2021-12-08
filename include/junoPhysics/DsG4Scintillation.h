@@ -69,11 +69,6 @@
 #ifndef DsG4Scintillation_h
 #define DsG4Scintillation_h 1
 
-
-#ifdef WITH_G4OPTICKS
-#include "plog/Severity.h"
-#endif
-
 #include "globals.hh"
 #include "templates.hh"
 #include "Randomize.hh"
@@ -107,9 +102,6 @@ class DsG4Scintillation : public G4VRestDiscreteProcess, public G4UImessenger
 { //too lazy to create another UImessenger class
 
 private:
-#ifdef WITH_G4OPTICKS
-     static const plog::Severity LEVEL ; 
-#endif
 
         //////////////
         // Operators
@@ -123,7 +115,7 @@ public: // Without description
 	// Constructors and Destructor
 	////////////////////////////////
 
-	DsG4Scintillation(G4int opticksMode = 0, const G4String& processName = "Scintillation",
+	DsG4Scintillation(const G4String& processName = "Scintillation",
                           G4ProcessType type = fElectromagnetic);
 
 	// DsG4Scintillation(const DsG4Scintillation &right);
@@ -183,12 +175,6 @@ public: // With description
        void SetUseFastMu300nsTrick(const G4bool fastMu300nsTrick);
        G4bool GetUseFastMu300nsTrick() const;
 
-#ifdef WITH_G4OPTICKS
-       G4MaterialPropertyVector* getMaterialProperty(const char* name, G4int materialIndex) ;
-       G4PhysicsOrderedFreeVector* getScintillationIntegral(G4int scnt, G4int materialIndex) const;
-       G4double getSampledEnergy(G4int scnt, G4int materialIndex) const ;
-       G4double getSampledWavelength(G4int scnt, G4int materialIndex) const ;
-#endif
 
         void SetScintillationExcitationRatio(const G4double excitationratio);
         // Called to set the scintillation exciation ratio, needed when
@@ -343,7 +329,6 @@ private:
         G4bool   fApplyPreQE;
         G4double fPreQE;
         bool m_noop;
-        G4int m_opticksMode ; 
 };
 
 ////////////////////

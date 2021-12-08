@@ -52,7 +52,7 @@ void MyDataExtract::SetBranches()
                   v_information_to_save[i].center_Edep,
                            "center_Edep[3]/D");
 
-        v_trees[i]->Branch("step_pdgID", &v_information_to_save[i].step_x);
+        v_trees[i]->Branch("step_pdgID", &v_information_to_save[i].step_pdgID);
         v_trees[i]->Branch("step_trackID", &v_information_to_save[i].step_trackID);
         v_trees[i]->Branch("step_x", &v_information_to_save[i].step_x);
         v_trees[i]->Branch("step_y", &v_information_to_save[i].step_y);
@@ -60,10 +60,26 @@ void MyDataExtract::SetBranches()
         v_trees[i]->Branch("step_t", &v_information_to_save[i].step_t);
         v_trees[i]->Branch("step_Edep", &v_information_to_save[i].step_Edep);
         v_trees[i]->Branch("step_Equench", &v_information_to_save[i].step_Equench);
+        v_trees[i]->Branch("step_dx", &v_information_to_save[i].step_dx);
     }
 }
 
-void MyDataExtract::UpdateInformation(const G4Event* event)
+void MyDataExtract::ResetVariable() {
+
+    for (int i = 0; i < n_hitsCollection; i++) {
+        v_information_to_save[i].step_x.clear();
+        v_information_to_save[i].step_y.clear();
+        v_information_to_save[i].step_z.clear();
+        v_information_to_save[i].step_pdgID.clear();
+        v_information_to_save[i].step_trackID.clear();
+        v_information_to_save[i].step_t.clear();
+        v_information_to_save[i].step_Edep.clear();
+        v_information_to_save[i].step_Equench.clear();
+        v_information_to_save[i].step_dx.clear();
+    }
+}
+
+    void MyDataExtract::UpdateInformation(const G4Event* event)
 {
         for(int i=0;i<n_hitsCollection;i++)
         {
@@ -74,12 +90,25 @@ void MyDataExtract::UpdateInformation(const G4Event* event)
             v_information_to_save[i].evtID=event->GetEventID();
 
             G4ThreeVector v_position_EdepCenter=GetEdepCenter(fHitsCollection,v_information_to_save[i].Edep_event);
-            for(int j=0;j<v_position_EdepCenter.SIZE;j++) v_information_to_save[i].center_Edep[j]
-                                    =v_position_EdepCenter[j]*100;
+            for(int j=0;j<v_position_EdepCenter.SIZE;j++)
+                v_information_to_save[i].center_Edep[j] = v_position_EdepCenter[j]*100;
+
+            for(int j=0;j<fHitsCollection->entries();j++)
+            {
+                auto hit = (*fHitsCollection)[j];
+                v_information_to_save[i].step_x.push_back(hit->GetPos()[0]);
+                v_information_to_save[i].step_y.push_back(hit->GetPos()[1]);
+                v_information_to_save[i].step_z.push_back(hit->GetPos()[2]);
+                v_information_to_save[i].step_pdgID.push_back(hit->GetPdgID());
+                v_information_to_save[i].step_trackID.push_back(hit->GetTrackID());
+                v_information_to_save[i].step_t.push_back(hit->time);
+                v_information_to_save[i].step_Edep.push_back(hit->GetEdep());
+                v_information_to_save[i].step_Equench.push_back(hit->fEquench);
+                v_information_to_save[i].step_dx.push_back(hit->fStepLength);
+            }
 
             }
         }
-
 
 }
 

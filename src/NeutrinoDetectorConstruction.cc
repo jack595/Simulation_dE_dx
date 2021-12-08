@@ -59,7 +59,7 @@ void NeutrinoDetectorConstruction::ConstructWorld()
                            0.5*world_z);
     
     logicWorld = new G4LogicalVolume(solidWorld,
-                                     vacuum,
+                                     vacuum_pure,
                                      "logicWorld");
     
     physWorld  = new G4PVPlacement(0,
@@ -76,8 +76,9 @@ void NeutrinoDetectorConstruction::ConstructDetector()
 {
     //------------------- experimental hall ------------------
     G4double expHallLength_x = 3 * m, expHallLength_y = 3 * m, expHallLength_z = 3 * m;
-    G4Box *expHall = new G4Box("expHall", 0.5 * expHallLength_x, 0.5 * expHallLength_y, 0.5 * expHallLength_z);
-    G4LogicalVolume *expHall_log = new G4LogicalVolume(expHall, air, "expHall", 0, 0, 0);
+    auto expHall = new G4Box("expHall", 0.5 * expHallLength_x, 0.5 * expHallLength_y, 0.5 * expHallLength_z);
+    auto expHall_log = new G4LogicalVolume(expHall, vacuum_pure, "expHall", 0, 0, 0);
+
     G4VPhysicalVolume *expHall_phys = new G4PVPlacement(0,            // no rotation
                                                         G4ThreeVector(0, 0, 0),    // at (x,y,z)
                                                         expHall_log,   // its logical volume
@@ -90,7 +91,7 @@ void NeutrinoDetectorConstruction::ConstructDetector()
     //-------------------- Chamber ------------------------
     G4double ChamberLength_x = 100. * cm, ChamberLength_y = 100. * cm, ChamberLength_z = 100. * cm;
     auto *Chamber = new G4Box("Chamber", 0.5 * ChamberLength_x, 0.5 * ChamberLength_y, 0.5 * ChamberLength_z);
-    G4LogicalVolume *Chamber_log = new G4LogicalVolume(Chamber, air, "Chamber_log", 0, 0, 0);
+    G4LogicalVolume *Chamber_log = new G4LogicalVolume(Chamber, vacuum_pure, "Chamber_log", 0, 0, 0);
     G4ThreeVector Chamberpos(0. * mm, 0. * mm, 0. * mm);
     G4RotationMatrix Chamberrot;
     Chamberrot.rotateY(90. * deg);
@@ -107,38 +108,45 @@ void NeutrinoDetectorConstruction::ConstructDetector()
     G4double PMT_3inch_r = 38.1 * mm;
     G4double PMT_3inch_thickness = 1 * cm;
     G4double Al_thickness = 0.1 * mm;
-    G4double Acrylic_thickness = 10. * mm;
-    G4double GdLS_Length = 5 * cm;
-    G4double GdLS_r = PMT_3inch_r;
+    G4double Acrylic_thickness = 0.0001 * mm;
+    G4double GdLS_Length = 5 * mm;
+    G4double GdLS_r = 3 * mm;
     G4double Acrylic_r = GdLS_r + Acrylic_thickness;
     G4double Acrylic_Length = GdLS_Length + 2 * Acrylic_thickness;
     G4double SiOil_r = PMT_3inch_r;
     G4double SiOil_thickness = 0.1 * mm;
 
-    //-------------------- Acrylic tank  ----------------------------------------
-    G4Tubs *Tank = new G4Tubs("Tank",
-                              0. * mm,
-                              Acrylic_r,
-                              0.5 * Acrylic_Length,
-                              0. * deg,
-                              360. * deg);
-    G4LogicalVolume *Tank_log = new G4LogicalVolume(Tank,
-                                                    Acrylic,
-                                                    "Tank_log",
-                                                    0,
-                                                    0,
-                                                    0);
-    G4VPhysicalVolume *Tank_phys = new G4PVPlacement(0,
-                                                     G4ThreeVector(0, 0, 0),    // at (x,y,z)
-                                                     Tank_log,   // its logical volume
-                                                     "Tank_phys",    // its name
-                                                     Chamber_log,      // its mother  volume
-                                                     false,           // no boolean operations
-                                                     0);
-    G4VisAttributes *Tank_visatt = new G4VisAttributes(G4Colour(0.0, 1.0, 0.0)); //green
-    Tank_visatt->SetForceWireframe(true);
-    Tank_visatt->SetForceAuxEdgeVisible(true);
-    Tank_log->SetVisAttributes(Tank_visatt);
+    G4LogicalVolume* mother_log_of_LS = NULL;
+    if (use_tank)
+    {
+        //-------------------- Acrylic tank  ----------------------------------------
+        G4Tubs *Tank = new G4Tubs("Tank",
+                                  0. * mm,
+                                  Acrylic_r,
+                                  0.5 * Acrylic_Length,
+                                  0. * deg,
+                                  360. * deg);
+        G4LogicalVolume *Tank_log = new G4LogicalVolume(Tank,
+                                                        Acrylic,
+                                                        "Tank_log",
+                                                        0,
+                                                        0,
+                                                        0);
+        G4VPhysicalVolume *Tank_phys = new G4PVPlacement(0,
+                                                         G4ThreeVector(0, 0, 0),    // at (x,y,z)
+                                                         Tank_log,   // its logical volume
+                                                         "Tank_phys",    // its name
+                                                         Chamber_log,      // its mother  volume
+                                                         false,           // no boolean operations
+                                                         0);
+        G4VisAttributes *Tank_visatt = new G4VisAttributes(G4Colour(0.0, 1.0, 0.0)); //green
+        Tank_visatt->SetForceWireframe(true);
+        Tank_visatt->SetForceAuxEdgeVisible(true);
+        Tank_log->SetVisAttributes(Tank_visatt);
+        mother_log_of_LS = Tank_log;
+    }
+    else
+        mother_log_of_LS = Chamber_log;
 
 
 //-------------------- GdLS ------------------------
@@ -149,16 +157,18 @@ void NeutrinoDetectorConstruction::ConstructDetector()
                                     0. * deg,
                                     360. * deg);
     G4LogicalVolume *GdLS_log = new G4LogicalVolume(GdLS_solid,
-                                                    GdLS,
+                                                    LS,
                                                     "GdLS_log",
                                                     0,
                                                     0,
                                                     0);
+
+
     G4VPhysicalVolume *GdLS_phys = new G4PVPlacement(0,
                                                      G4ThreeVector(0, 0, 0),    // at (x,y,z)
                                                      GdLS_log,   // its logical volume
                                                      "GdLS_phys",    // its name
-                                                     Tank_log,      // its mother  volume
+                                                     mother_log_of_LS,      // its mother  volume
                                                      false,           // no boolean operations
                                                      0);
     G4VisAttributes *GdLS_visatt = new G4VisAttributes(G4Colour(0.0, 0.0, 1.0));//blue
@@ -271,6 +281,7 @@ void NeutrinoDetectorConstruction::ConstructDetector()
 
 void NeutrinoDetectorConstruction::ConstructMaterials()
 {
+    bool any_warnings = false;
     // elements
     G4Element* H  = new G4Element("Hydrogen", "H" , 1., 1.01*g/mole);
     G4Element* O  = new G4Element("Oxygen", "O", 8., 16.00*g/mole);
@@ -287,6 +298,23 @@ void NeutrinoDetectorConstruction::ConstructMaterials()
     G4Element* S  = new G4Element("Sulfur", "S", 16., 32.066*g/mole);
     G4Element* Cr = new G4Element("Cr", "Cr", 24, 51.9961*g/mole);
     G4Element* Ni = new G4Element("Ni", "Ni", 28, 58.6934*g/mole);
+
+
+    G4Element* TS_H_of_Water = G4Element::GetElement("TS_H_of_Water", any_warnings);
+    if (not TS_H_of_Water) {
+        TS_H_of_Water = new G4Element("TS_H_of_Water", "H_WATER", 1., 1.01 * g / mole);
+    }
+
+    G4Element* TS_H_of_Polyethylene = G4Element::GetElement("TS_H_of_Polyethylene", any_warnings);
+    if (not TS_H_of_Polyethylene) {
+        TS_H_of_Polyethylene = new G4Element("TS_H_of_Polyethylene", "H_POLYETHYLENE" , 1., 1.01*g/mole);
+    }
+
+    G4Element* TS_C_of_Graphite = G4Element::GetElement("TS_C_of_Graphite", any_warnings);
+    if (not TS_C_of_Graphite) {
+        TS_C_of_Graphite = new G4Element("TS_C_of_Graphite", "C_GRAPHITE" , 6., 12.01*g/mole);
+    }
+
 
 
     // Element Gd
@@ -386,6 +414,10 @@ void NeutrinoDetectorConstruction::ConstructMaterials()
     airMPT->AddProperty("ABSLENGTH", airPP, airABSLENGTH,  2);
     air->SetMaterialPropertiesTable(airMPT);
 
+
+    // Vacuum
+    vacuum_pure = new G4Material("Galactic", 1., 1.01*g/mole, universe_mean_density, kStateGas, 2.73*kelvin, 3.e-18*pascal);
+
     // vacuum
     density     =  1e-3 * CLHEP::kGasThreshold;
     G4double temperature = CLHEP::STP_Temperature;
@@ -444,6 +476,95 @@ void NeutrinoDetectorConstruction::ConstructMaterials()
     GdLS->AddElement(O, 1.64*perCent);
     GdLS->AddElement(N,  0.03*perCent);
     GdLS->AddElement(Gd, 0.10*perCent);
+
+
+    // JUNO LS
+    LS  = new G4Material("LS", 0.859*g/cm3, 5);
+    LS->AddElement(TS_C_of_Graphite,  0.87924);
+    //LS->AddElement(H,  0.1201);
+    LS->AddElement(TS_H_of_Water,  0.1201);
+    LS->AddElement(O,  0.00034);
+    //LS->AddElement(Gd, 0.0010315);
+    LS->AddElement(N,  0.00027);
+    LS->AddElement(S,  0.00005);
+
+    auto LSMPT = new G4MaterialPropertiesTable();
+
+    LSMPT->AddProperty("RINDEX",   GdLSRefIndexEnergy, GdLSRefIndex, 18);
+    LSMPT->AddProperty("ABSLENGTH", GdLSABSEnergy_new, GdLSABSLength_new, 601);
+    LSMPT->AddProperty("FASTCOMPONENT", GdLSComEnergy, GdLSFastComponent, 275);
+    LSMPT->AddProperty("SLOWCOMPONENT", GdLSComEnergy, GdLSFastComponent, 275);
+    LSMPT->AddProperty("REEMISSIONPROB", GdLSReemEnergy, GdLSReem, 28);
+    LSMPT->AddProperty("RAYLEIGH", GdLSRayEnergy, GdLSRayLength, 11);
+    LSMPT->AddProperty("SCINTILLATIONYIELD", component, GdLSLY,2);
+    LSMPT->AddProperty("RESOLUTIONSCALE", component, GdLSResolutionScale,2);
+
+    LSMPT->AddConstProperty("SCINTILLATIONYIELD", GdLSLY[0]);
+    LSMPT->AddConstProperty("RESOLUTIONSCALE",GdLSResolutionScale[0]);
+    LSMPT->AddConstProperty("FASTTIMECONSTANT",GdLSFastTimeConstant[0]);
+    LSMPT->AddConstProperty("SLOWTIMECONSTANT",GdLSSlowTimeConstant[0]);
+    LSMPT->AddConstProperty("YIELDRATIO",GdLSYieldRatio[0]);
+
+    LSMPT->AddProperty("GammaFASTTIMECONSTANT", component, GdLSFastTimeConstant,2);
+    LSMPT->AddProperty("GammaSLOWTIMECONSTANT", component, GdLSSlowTimeConstant,2);
+    LSMPT->AddProperty("GammaYIELDRATIO", component, GdLSYieldRatio,2);
+
+    // add fast/slow time constant for alpha
+    LSMPT->AddProperty("AlphaFASTTIMECONSTANT", component, GdLSAlphaFastTimeConstant,2);
+    LSMPT->AddProperty("AlphaSLOWTIMECONSTANT", component, GdLSAlphaSlowTimeConstant,2);
+    LSMPT->AddProperty("AlphaYIELDRATIO", component, GdLSAlphaYieldRatio,2);
+
+    // add fast/slow time constant for neutron
+    LSMPT->AddProperty("NeutronFASTTIMECONSTANT", component, GdLSNeutronFastTimeConstant,2);
+    LSMPT->AddProperty("NeutronSLOWTIMECONSTANT", component, GdLSNeutronSlowTimeConstant,2);
+    LSMPT->AddProperty("NeutronYIELDRATIO", component, GdLSNeutronYieldRatio,2);
+
+    // add fast/slow time constant for reemission
+    LSMPT->AddProperty("ReemissionFASTTIMECONSTANT", component, GdLSReemissionFastTimeConstant,2);
+    LSMPT->AddProperty("ReemissionSLOWTIMECONSTANT", component, GdLSReemissionSlowTimeConstant,2);
+    LSMPT->AddProperty("ReemissionYIELDRATIO", component, GdLSReemissionYieldRatio,2);
+
+    // Following lines are for new Optical Model.
+    // + PART I: Emission by PPO
+    // + PART II: Absorption and Re-emission by PPO, bis-MSB and LAB
+    //   Need:
+    //     + XXXABSLENGTH
+    //     + XXXREEMISSIONPROB
+    //     + XXXCOMPONENT, maybe FAST/SLOW
+    //     + XXXTIMECONSTANT, maybe FAST/SLOW
+    //   XXX in [PPO, bisMSB, LAB]
+    LSMPT->AddProperty("PPOABSLENGTH", GdLSABSEnergy_new, GdLSABSLength_new, 601);
+    LSMPT->AddProperty("PPOREEMISSIONPROB", GdLSReemEnergy, GdLSReem, 28);
+    LSMPT->AddProperty("PPOCOMPONENT", GdLSComEnergy, GdLSFastComponent, 275);
+    LSMPT->AddProperty("PPOTIMECONSTANT", component, GdLSReemissionFastTimeConstant,2);
+
+    LSMPT->AddProperty("bisMSBABSLENGTH", GdLSABSEnergy_new, GdLSABSLength_new, 601);
+    LSMPT->AddProperty("bisMSBREEMISSIONPROB", GdLSReemEnergy, GdLSReem, 28);
+    LSMPT->AddProperty("bisMSBCOMPONENT", GdLSComEnergy, GdLSFastComponent, 275);
+    LSMPT->AddProperty("bisMSBTIMECONSTANT", component, GdLSReemissionFastTimeConstant,2);
+
+    // LSMPT->DumpTable();
+    LS->SetMaterialPropertiesTable(LSMPT);
+
+
+    G4cout << "LAB is constructed from the code." << G4endl;
+    LAB = new G4Material("LAB", 0.859*g/cm3, 5);
+    //LAB->AddElement(C,  0.87924);
+    LAB->AddElement(TS_C_of_Graphite,  0.87924);
+    //LAB->AddElement(H,  0.1201);
+    LAB->AddElement(TS_H_of_Water,  0.1201);
+    LAB->AddElement(O,  0.00034);
+    //LAB->AddElement(Gd, 0.0010315);
+    LAB->AddElement(N,  0.00027);
+    LAB->AddElement(S,  0.00005);
+
+    G4MaterialPropertiesTable* LABMPT = new G4MaterialPropertiesTable();
+    LABMPT->AddProperty("RINDEX",   GdLSRefIndexEnergy, GdLSRefIndex, 18);
+    LABMPT->AddProperty("ABSLENGTH", GdLSABSEnergy_new, GdLSABSLength_new, 601);
+    LABMPT->AddProperty("RAYLEIGH", GdLSRayEnergy, GdLSRayLength, 11);
+    LAB->SetMaterialPropertiesTable(LABMPT);
+
+
 
     // Si Oil
     density = 0.838 * g / cm3;

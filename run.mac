@@ -18,8 +18,8 @@
 # /gps/ang/mintheta   90 deg
 
 ## Gun mode ##
-/gps/particle gamma
-/gps/energy 1 MeV
+/gps/particle e+
+/gps/energy 1 keV
 /gps/position 0 100 0 mm
 /gps/direction 0 -1 0 mm
 

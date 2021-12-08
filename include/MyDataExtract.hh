@@ -16,8 +16,10 @@ struct InformationToSave
     std::vector<double> step_t;
     std::vector<double> step_Edep;
     std::vector<double> step_Equench;
+    std::vector<double> step_dx;
     std::vector<int> step_pdgID;
     std::vector<int> step_trackID;
+
 
     InformationToSave(){};
     InformationToSave(const Double_t E,
@@ -45,6 +47,7 @@ public:
     void JudgeWhetherHit();
     G4ThreeVector GetEdepCenter(MyTrackerHitsCollection* fHitsCollection, const G4double &Edep_total);
     void DrawEdepCenter();
+    void ResetVariable();
 private:
     static std::vector<InformationToSave>v_information_to_save;
 

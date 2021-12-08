@@ -30,12 +30,14 @@ public:
     void SetPos      (G4ThreeVector xyz){ fPos = xyz; };
     void SetParticleName(G4String particleName)
                  { fParticleName=particleName; };
+    void SetPDGID(G4int pdgID) { fpdgID=pdgID;};
 
     // Get methods
     G4int GetTrackID() const     { return fTrackID; };
     G4int GetChamberNb() const   { return fChamberNb; };
     G4double GetEdep() const     { return fEdep; };
     G4ThreeVector GetPos() const { return fPos; };
+    G4int  GetPdgID() {return  fpdgID;};
 
 //    bool WhetherHit
 
@@ -44,8 +46,13 @@ public:
       G4int         fTrackID;
       G4int         fChamberNb;
       G4double      fEdep;
+      G4double      fEquench;
       G4ThreeVector fPos;
-      G4String fParticleName;//those four variables are what we want to record in every hit
+      G4double      fStepLength;
+      G4String      fParticleName;
+      G4int         fpdgID;
+      G4double      time;
+
 };
 
 typedef  G4THitsCollection<MytrackerHit> MyTrackerHitsCollection; //this is a vector

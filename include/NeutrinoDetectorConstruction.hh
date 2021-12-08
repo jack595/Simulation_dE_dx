@@ -44,17 +44,22 @@ class NeutrinoDetectorConstruction : public G4VUserDetectorConstruction
         G4Material* pyrex;
         G4Material* steel;
         G4Material* vacuum;
+        G4Material* vacuum_pure;
         G4Material* Photocathode_mat_Ham20inch;
         G4Material* Photocathode_mat_MCP20inch;
         G4Material* Acrylic;
         G4Material* GdLS;
+        G4Material* LS;
         G4Material* Oil;
+        G4Material* LAB;
         
         // world
         G4VSolid*           solidWorld;
         G4LogicalVolume*    logicWorld;
         G4VPhysicalVolume*  physWorld;
-        
+
+        const bool use_tank=false;
+
         G4bool fCheckOverlaps;
 };
 
