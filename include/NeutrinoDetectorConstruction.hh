@@ -58,7 +58,10 @@ class NeutrinoDetectorConstruction : public G4VUserDetectorConstruction
         G4LogicalVolume*    logicWorld;
         G4VPhysicalVolume*  physWorld;
 
-        const bool use_tank=false;
+        const bool box_LS = true;
+        const bool use_tank=true;
+        const bool add_periphery_detectors=false;
+
 
         G4bool fCheckOverlaps;
 };

@@ -4060,7 +4060,7 @@ double GdLSABSLength_new[601] = {
                 8.0e-3*mm
   };
 */
- 
+
   double AcrylicAbsEnergy[25] = {
 1.55  *eV,
 1.61  *eV,

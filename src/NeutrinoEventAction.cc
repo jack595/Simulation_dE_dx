@@ -5,8 +5,9 @@
 #include "../include/NeutrinoEventAction.hh"
 
 
-NeutrinoEventAction::NeutrinoEventAction()
+NeutrinoEventAction::NeutrinoEventAction(TString name_file)
 {
+    name_output_file = name_file;
 }
 
 NeutrinoEventAction::~NeutrinoEventAction()
@@ -34,8 +35,9 @@ void NeutrinoEventAction::EndOfEventAction(const G4Event* anEvent)
     G4HCofThisEvent* HCE= fpEventManager->GetEventManager()->GetConstCurrentEvent()->GetHCofThisEvent();
     if(anEvent->GetEventID()==0)
     {
-        data_extract=new MyDataExtract(HCE,"../try_save_information.root");
+        data_extract=new MyDataExtract(HCE,name_output_file);
         data_extract->RunInitiate();
+        generator.CreateTree();
     }
     else data_extract->GetHCE(HCE);
 
@@ -46,6 +48,7 @@ void NeutrinoEventAction::EndOfEventAction(const G4Event* anEvent)
 //    data_extract->DrawEdepCenter();
     data_extract->Fill();
     data_extract->ResetVariable();
+    generator.FillTree();
 
     G4cout<<"End of "<<anEvent->GetEventID()<<"th Event..."<<G4endl;
 }

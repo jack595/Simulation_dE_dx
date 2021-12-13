@@ -10,6 +10,7 @@ struct InformationToSave
     Double_t Edep_event;
     Int_t evtID;
     Double_t center_Edep[3]{};
+    std::vector<int> step_Chamber_ID;
     std::vector<double> step_x;
     std::vector<double> step_y;
     std::vector<double> step_z;

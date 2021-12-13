@@ -11,6 +11,7 @@
 MyTrackerSD::MyTrackerSD(const G4String &name, const G4String &hitsCollectionName)
     :G4VSensitiveDetector(name),fHitsCollection(NULL)
 {
+    name_SDHitsCollection = hitsCollectionName;
     collectionName.insert(hitsCollectionName);
 }
 
@@ -33,7 +34,10 @@ void MyTrackerSD::Initialize(G4HCofThisEvent *hitsCollection)
 G4bool MyTrackerSD::ProcessHits(G4Step *aStep, G4TouchableHistory *)
 {
     G4double edep=aStep->GetTotalEnergyDeposit();
-    if(edep==0.) return false;
+//    std::cout<< "I'm in SD volume" <<std::endl;
+    if(edep==0. && name_SDHitsCollection.Contains("LS")) return false;
+    if (aStep->GetTrack()->GetParticleDefinition()->GetPDGEncoding()==20022 && name_SDHitsCollection.Contains("LS"))
+        return false;
     auto newHit=new MytrackerHit();
 
     newHit->SetTrackID(aStep->GetTrack()->GetTrackID());
@@ -48,6 +52,7 @@ G4bool MyTrackerSD::ProcessHits(G4Step *aStep, G4TouchableHistory *)
 
     fHitsCollection->insert(newHit);
 
+//    G4cout << name_SDHitsCollection << G4endl;
 //    newHit->Print();
 //    G4cout<<"How to prove I am running!"<<G4endl;
 

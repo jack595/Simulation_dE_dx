@@ -21,6 +21,8 @@
 
 #include "./include/MyVDataExtract.hh"
 #include "./include/MyDataExtract.hh"
+#include "NeutrinoPrimaryGeneratorAction.hh"
+#include "TString.h"
 
 //static variable initialization
 TFile*  MyVDataExtract::file_save_processed_data;
@@ -31,10 +33,13 @@ std::vector<G4String> MyVDataExtract::v_SD_name;
 TString MyVDataExtract::name_processed_file;
 G4int MyVDataExtract::n_hitsCollection;
 std::vector<bool> MyVDataExtract::v_whether_hit;
+TTree* NeutrinoPrimaryGeneratorAction::tree_generator;
+double NeutrinoPrimaryGeneratorAction::Energy_init;
 int main(int argc, char **argv){
 
     int seed = 10010;
     char* macName = NULL;
+    char* name_outfile = NULL;
 
     for(int i=1;i<argc;i++){
         if(strcmp(argv[i],"-seed") == 0){
@@ -43,6 +48,9 @@ int main(int argc, char **argv){
         }else if(strcmp(argv[i],"-mac") == 0){
             i++;
             macName = argv[i];
+        }else if(strcmp(argv[i],"-output") == 0){
+            i++;
+            name_outfile = argv[i];
         }
     }
 
@@ -66,9 +74,12 @@ int main(int argc, char **argv){
     // run action
     NeutrinoRunAction* runAction = new NeutrinoRunAction();
     runManager->SetUserAction(runAction);
-    
+
+    if (!name_outfile)
+        name_outfile = "../try_save_information.root";
+
     // event action
-    NeutrinoEventAction* eventAction = new NeutrinoEventAction(); 
+    NeutrinoEventAction* eventAction = new NeutrinoEventAction((TString)name_outfile);
     runManager->SetUserAction(eventAction);
     
     // tracking action

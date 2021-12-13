@@ -31,13 +31,14 @@ DsPhysConsOptical::DsPhysConsOptical(const G4String& name): G4VPhysicsConstructo
     m_doScintAndCeren = true;
     m_doReemissionOnly = false;
 
+    bool optical = false;
 
-    m_useCerenkov=true;
+    m_useCerenkov=optical;
     m_useCerenkovType="modified";
     m_cerenkovYieldFactor = 1.;
     m_applyWaterQe=true;
 
-    m_useScintillation=true;
+    m_useScintillation=optical;
     m_useScintSimple=false;
     m_useRayleigh=true;
     m_useAbsorption=true;

@@ -58,7 +58,7 @@ double EdepToQquench(G4Step* step)
             }
         }
     }
-    std::cout<< "Quench Energy:\t"<< QuenchedTotalEnergyDeposit<< std::endl;
+//    std::cout<< "Quench Energy:\t"<< QuenchedTotalEnergyDeposit<< std::endl;
     return QuenchedTotalEnergyDeposit;
 
 }

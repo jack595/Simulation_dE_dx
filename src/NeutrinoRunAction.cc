@@ -7,6 +7,7 @@
 #include "G4UIcommand.hh"
 #include "G4Event.hh"
 #include "../include/MyVDataExtract.hh"
+#include "../include/NeutrinoPrimaryGeneratorAction.hh"
 
 NeutrinoRunAction::NeutrinoRunAction()
 {
@@ -41,6 +42,8 @@ void NeutrinoRunAction::EndOfRunAction(const G4Run* aRun)
 {
 
     MyVDataExtract data_extract;
+    NeutrinoPrimaryGeneratorAction generator;
+    generator.WriteTree();
     data_extract.Close();
 
 //    G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();

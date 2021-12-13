@@ -25,7 +25,7 @@ void MyDataExtract::RunInitiate()
         for(int i=0;i<n_hitsCollection;i++)
         {
             v_information_to_save.push_back(InformationToSave(1.+i,1+i,{1.+i,1.+i,1.+i}));
-            v_whether_hit.push_back(false);
+            v_whether_hit.push_back(true);
         }
 
         DataFileInitiate();
@@ -52,6 +52,7 @@ void MyDataExtract::SetBranches()
                   v_information_to_save[i].center_Edep,
                            "center_Edep[3]/D");
 
+
         v_trees[i]->Branch("step_pdgID", &v_information_to_save[i].step_pdgID);
         v_trees[i]->Branch("step_trackID", &v_information_to_save[i].step_trackID);
         v_trees[i]->Branch("step_x", &v_information_to_save[i].step_x);
@@ -61,6 +62,7 @@ void MyDataExtract::SetBranches()
         v_trees[i]->Branch("step_Edep", &v_information_to_save[i].step_Edep);
         v_trees[i]->Branch("step_Equench", &v_information_to_save[i].step_Equench);
         v_trees[i]->Branch("step_dx", &v_information_to_save[i].step_dx);
+        v_trees[i]->Branch("step_chamberID", &v_information_to_save[i].step_Chamber_ID);
     }
 }
 
@@ -76,6 +78,7 @@ void MyDataExtract::ResetVariable() {
         v_information_to_save[i].step_Edep.clear();
         v_information_to_save[i].step_Equench.clear();
         v_information_to_save[i].step_dx.clear();
+        v_information_to_save[i].step_Chamber_ID.clear();
     }
 }
 
@@ -89,9 +92,9 @@ void MyDataExtract::ResetVariable() {
 
             v_information_to_save[i].evtID=event->GetEventID();
 
-            G4ThreeVector v_position_EdepCenter=GetEdepCenter(fHitsCollection,v_information_to_save[i].Edep_event);
-            for(int j=0;j<v_position_EdepCenter.SIZE;j++)
-                v_information_to_save[i].center_Edep[j] = v_position_EdepCenter[j]*100;
+//            G4ThreeVector v_position_EdepCenter=GetEdepCenter(fHitsCollection,v_information_to_save[i].Edep_event);
+//            for(int j=0;j<v_position_EdepCenter.SIZE;j++)
+//                v_information_to_save[i].center_Edep[j] = v_position_EdepCenter[j]*100;
 
             for(int j=0;j<fHitsCollection->entries();j++)
             {
@@ -105,6 +108,7 @@ void MyDataExtract::ResetVariable() {
                 v_information_to_save[i].step_Edep.push_back(hit->GetEdep());
                 v_information_to_save[i].step_Equench.push_back(hit->fEquench);
                 v_information_to_save[i].step_dx.push_back(hit->fStepLength);
+                v_information_to_save[i].step_Chamber_ID.push_back(hit->GetChamberNb());
             }
 
             }
@@ -129,19 +133,28 @@ void MyDataExtract::JudgeWhetherHit()
 
         G4double Edep_total=0;
         MyTrackerHitsCollection* fHitsCollection=v_MytrackerHitsCollection[i];
-        G4int nofHits=fHitsCollection->entries();
+        G4int nofHits = fHitsCollection->entries();
         for ( G4int j=0; j<nofHits; j++ ) Edep_total+=(*fHitsCollection)[j]->fEdep;
-        v_information_to_save[i].Edep_event=Edep_total/keV;
+        v_information_to_save[i].Edep_event=Edep_total;
 
     }
     for(int i=0;i<n_hitsCollection;i++)
     {
-        if(v_information_to_save[i].Edep_event!=0.)
+        G4cout << v_SD_name[i] << " " << v_MytrackerHitsCollection[i]->entries() << G4endl;
+        if (v_SD_name[i].contains("PMT"))
         {
-        v_whether_hit[i]=true;
-        G4cout<<i<<" Edep_total: "<<v_information_to_save[i].Edep_event<<G4endl;
+            if (v_MytrackerHitsCollection[i]->entries()!=0)
+                v_whether_hit[i] =  true;
+            else
+                v_whether_hit[i] = false;
         }
-        else v_whether_hit[i]=false;
+        else
+        {
+            if(v_information_to_save[i].Edep_event!=0.)
+                v_whether_hit[i]=true;
+            else
+                v_whether_hit[i]=false;
+        }
 
     }
 
@@ -153,8 +166,8 @@ G4ThreeVector MyDataExtract::GetEdepCenter(MyTrackerHitsCollection *fHitsCollect
     for ( G4int i=0; i<fHitsCollection->entries(); i++ )
     {
     G4ThreeVector v_position_hit=(*fHitsCollection)[i]->fPos;
-    G4cout<<"v_position_event: "<<G4BestUnit(v_position_hit,"Length")<<G4endl;
-    G4cout<<"Edep: "<<G4BestUnit((*fHitsCollection)[i]->GetEdep(),"Energy")<<G4endl;
+//    G4cout<<"v_position_event: "<<G4BestUnit(v_position_hit,"Length")<<G4endl;
+//    G4cout<<"Edep: "<<G4BestUnit((*fHitsCollection)[i]->GetEdep(),"Energy")<<G4endl;
     v_position_EdepCenter+=v_position_hit*(*fHitsCollection)[i]->GetEdep();
 
     }

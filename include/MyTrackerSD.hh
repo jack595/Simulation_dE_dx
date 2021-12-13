@@ -3,6 +3,7 @@
 #include"G4VSensitiveDetector.hh"
 #include"MytrackerHit.hh"
 #include"vector"
+#include "TString.h"
 
 class G4Step;
 class G4HCofThisEvent;
@@ -21,5 +22,6 @@ public:
 
 private:
     MyTrackerHitsCollection* fHitsCollection;
+    TString name_SDHitsCollection;
 };
 
