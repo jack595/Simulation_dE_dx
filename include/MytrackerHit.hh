@@ -52,6 +52,7 @@ public:
       G4String      fParticleName;
       G4int         fpdgID;
       G4double      time;
+      G4int         isCherenkov;
 
 };
 

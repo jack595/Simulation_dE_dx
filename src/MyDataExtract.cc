@@ -63,6 +63,7 @@ void MyDataExtract::SetBranches()
         v_trees[i]->Branch("step_Equench", &v_information_to_save[i].step_Equench);
         v_trees[i]->Branch("step_dx", &v_information_to_save[i].step_dx);
         v_trees[i]->Branch("step_chamberID", &v_information_to_save[i].step_Chamber_ID);
+        v_trees[i]->Branch("step_isCherenkov", &v_information_to_save[i].step_isCherenkov);
     }
 }
 
@@ -79,6 +80,7 @@ void MyDataExtract::ResetVariable() {
         v_information_to_save[i].step_Equench.clear();
         v_information_to_save[i].step_dx.clear();
         v_information_to_save[i].step_Chamber_ID.clear();
+        v_information_to_save[i].step_isCherenkov.clear();
     }
 }
 
@@ -109,6 +111,7 @@ void MyDataExtract::ResetVariable() {
                 v_information_to_save[i].step_Equench.push_back(hit->fEquench);
                 v_information_to_save[i].step_dx.push_back(hit->fStepLength);
                 v_information_to_save[i].step_Chamber_ID.push_back(hit->GetChamberNb());
+                v_information_to_save[i].step_isCherenkov.push_back(hit->isCherenkov);
             }
 
             }

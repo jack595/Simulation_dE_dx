@@ -35,9 +35,11 @@ G4bool MyTrackerSD::ProcessHits(G4Step *aStep, G4TouchableHistory *)
 {
     G4double edep=aStep->GetTotalEnergyDeposit();
 //    std::cout<< "I'm in SD volume" <<std::endl;
-    if(edep==0. && name_SDHitsCollection.Contains("LS")) return false;
+//    if(edep==0. && name_SDHitsCollection.Contains("LS")) return false;
+    if(edep==0. ) return false;
     if (aStep->GetTrack()->GetParticleDefinition()->GetPDGEncoding()==20022 && name_SDHitsCollection.Contains("LS"))
         return false;
+
     auto newHit=new MytrackerHit();
 
     newHit->SetTrackID(aStep->GetTrack()->GetTrackID());
@@ -49,6 +51,10 @@ G4bool MyTrackerSD::ProcessHits(G4Step *aStep, G4TouchableHistory *)
     newHit->SetPDGID(aStep->GetTrack()->GetParticleDefinition()->GetPDGEncoding());
     newHit->time = aStep->GetPreStepPoint()->GetGlobalTime();
     newHit->fStepLength = aStep->GetStepLength();
+    if (newHit->fpdgID==20022 && aStep->GetTrack()->GetCreatorProcess()->GetProcessName()=="Cerenkov")
+        newHit->isCherenkov = 1;
+    else
+        newHit->isCherenkov = 0;
 
     fHitsCollection->insert(newHit);
 

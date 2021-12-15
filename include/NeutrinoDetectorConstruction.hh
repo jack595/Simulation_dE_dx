@@ -46,6 +46,7 @@ class NeutrinoDetectorConstruction : public G4VUserDetectorConstruction
         G4Material* vacuum;
         G4Material* vacuum_pure;
         G4Material* Photocathode_mat_Ham20inch;
+        G4Material* Photocathode_mat_Ham3inch;
         G4Material* Photocathode_mat_MCP20inch;
         G4Material* Acrylic;
         G4Material* GdLS;

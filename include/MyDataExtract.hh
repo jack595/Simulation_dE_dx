@@ -20,6 +20,7 @@ struct InformationToSave
     std::vector<double> step_dx;
     std::vector<int> step_pdgID;
     std::vector<int> step_trackID;
+    std::vector<int> step_isCherenkov;
 
 
     InformationToSave(){};
