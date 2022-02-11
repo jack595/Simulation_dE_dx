@@ -31,6 +31,11 @@ class NeutrinoDetectorConstruction : public G4VUserDetectorConstruction
         // construct SD volume
         virtual void ConstructSDandField();
 
+        // Set Attributes
+        void SetLengthOfLS(float );
+        void SetLengthOfSpeedBump( float );
+        void SetDistanceOfNearPMT(float d_PMT){m_distance_PMT_near=d_PMT;}
+
     MyDataExtract* data_extract;
 
     protected:
@@ -49,10 +54,13 @@ class NeutrinoDetectorConstruction : public G4VUserDetectorConstruction
         G4Material* Photocathode_mat_Ham3inch;
         G4Material* Photocathode_mat_MCP20inch;
         G4Material* Acrylic;
+        G4Material* PVC;
         G4Material* GdLS;
         G4Material* LS;
         G4Material* Oil;
         G4Material* LAB;
+        G4Material* Al;
+        G4Material* Pb;
         
         // world
         G4VSolid*           solidWorld;
@@ -62,6 +70,12 @@ class NeutrinoDetectorConstruction : public G4VUserDetectorConstruction
         const bool box_LS = true;
         const bool use_tank=true;
         const bool add_periphery_detectors=false;
+        const bool add_speed_bump = false;
+
+        float m_L_LS;
+        float m_L_SpeedBump;
+        float m_distance_PMT_near;
+
 
 
         G4bool fCheckOverlaps;

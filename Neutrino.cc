@@ -35,22 +35,45 @@ G4int MyVDataExtract::n_hitsCollection;
 std::vector<bool> MyVDataExtract::v_whether_hit;
 TTree* NeutrinoPrimaryGeneratorAction::tree_generator;
 double NeutrinoPrimaryGeneratorAction::Energy_init;
+std::vector<double> NeutrinoPrimaryGeneratorAction::XYZ;
 int main(int argc, char **argv){
 
     int seed = 10010;
     char* macName = NULL;
     char* name_outfile = NULL;
+    float L_LS = 3;// mm
+    float L_SpeedBump = 1;//cm
+    bool add_rad_source = false;
+    float distance_PMT_near = 1; //cm
 
     for(int i=1;i<argc;i++){
         if(strcmp(argv[i],"-seed") == 0){
             i++;
             seed = std::atoi(argv[i]);
-        }else if(strcmp(argv[i],"-mac") == 0){
+        }
+        else if (strcmp(argv[i], "-d_PMT")==0)
+        {
+            i++;
+            distance_PMT_near = std::atof(argv[i]);
+        }
+        else if(strcmp(argv[i],"-mac") == 0){
             i++;
             macName = argv[i];
         }else if(strcmp(argv[i],"-output") == 0){
             i++;
             name_outfile = argv[i];
+        }else if(strcmp(argv[i], "-L_LS") == 0 ){
+            i++;
+            L_LS = std::atof(argv[i]);
+        }else if(strcmp(argv[i], "-L_SpeedBump") == 0 )
+        {
+            i++;
+            L_SpeedBump = std::atof(argv[i]);
+        }else if(strcmp(argv[i], "-AddSource")==0)
+        {
+            i++;
+            add_rad_source = true;
+            G4cout << "Turn on add source mode!"<<G4endl;
         }
     }
 
@@ -59,7 +82,11 @@ int main(int argc, char **argv){
     G4RunManager* runManager = new G4RunManager;
     /* Initialization classes (mandatory) */
     // detector
-    G4VUserDetectorConstruction* detectorConstruction = new NeutrinoDetectorConstruction();
+    NeutrinoDetectorConstruction* detectorConstruction = new NeutrinoDetectorConstruction();
+    std::cout<< "LS Length:\t"<<L_LS<< " mm" <<std::endl;
+    detectorConstruction->SetLengthOfLS(L_LS);
+    detectorConstruction->SetLengthOfSpeedBump(L_SpeedBump);
+    detectorConstruction->SetDistanceOfNearPMT(distance_PMT_near);
     runManager->SetUserInitialization(detectorConstruction);
     
     // physics list
@@ -67,8 +94,9 @@ int main(int argc, char **argv){
     runManager->SetUserInitialization(physicsList);
     
     // generator
-    G4VUserPrimaryGeneratorAction* genAction = new NeutrinoPrimaryGeneratorAction(); 
+    G4VUserPrimaryGeneratorAction* genAction = new NeutrinoPrimaryGeneratorAction(add_rad_source);
     runManager->SetUserAction(genAction);
+
 
     /* User Action classes */
     // run action

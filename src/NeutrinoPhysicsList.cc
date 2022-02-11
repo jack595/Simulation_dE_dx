@@ -78,9 +78,9 @@
 
 NeutrinoPhysicsList::NeutrinoPhysicsList() : G4VModularPhysicsList()
 {
-  cutForGamma     = 1.0*mm;
-  cutForElectron  = 0.1*mm;
-  cutForPositron  = 0.1*mm;
+  cutForGamma     = 0.1*mm;
+  cutForElectron  = 0.01*mm;
+  cutForPositron  = 0.01*mm;
   
 
   SetVerboseLevel(1);

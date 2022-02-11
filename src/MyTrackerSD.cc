@@ -51,6 +51,12 @@ G4bool MyTrackerSD::ProcessHits(G4Step *aStep, G4TouchableHistory *)
     newHit->SetPDGID(aStep->GetTrack()->GetParticleDefinition()->GetPDGEncoding());
     newHit->time = aStep->GetPreStepPoint()->GetGlobalTime();
     newHit->fStepLength = aStep->GetStepLength();
+    newHit->fKineticE = aStep->GetPreStepPoint()->GetKineticEnergy();
+
+//    if (newHit->GetTrackID()>1 && aStep->IsFirstStepInVolume())
+//        std::cout << "Creator Process:\t"<< aStep->GetTrack()->GetCreatorProcess()->GetProcessName()<<"\tPDG:\t"<<newHit->fpdgID << std::endl;
+
+
     if (newHit->fpdgID==20022 && aStep->GetTrack()->GetCreatorProcess()->GetProcessName()=="Cerenkov")
         newHit->isCherenkov = 1;
     else

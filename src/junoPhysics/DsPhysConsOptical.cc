@@ -38,7 +38,7 @@ DsPhysConsOptical::DsPhysConsOptical(const G4String& name): G4VPhysicsConstructo
     m_cerenkovYieldFactor = 1.;
     m_applyWaterQe=true;
 
-    m_useScintillation=false;
+    m_useScintillation=optical;
     m_useScintSimple=false;
     m_useRayleigh=true;
     m_useAbsorption=true;

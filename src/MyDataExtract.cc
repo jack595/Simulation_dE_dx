@@ -61,6 +61,7 @@ void MyDataExtract::SetBranches()
         v_trees[i]->Branch("step_t", &v_information_to_save[i].step_t);
         v_trees[i]->Branch("step_Edep", &v_information_to_save[i].step_Edep);
         v_trees[i]->Branch("step_Equench", &v_information_to_save[i].step_Equench);
+        v_trees[i]->Branch("step_KineticE", &v_information_to_save[i].step_KineticE);
         v_trees[i]->Branch("step_dx", &v_information_to_save[i].step_dx);
         v_trees[i]->Branch("step_chamberID", &v_information_to_save[i].step_Chamber_ID);
         v_trees[i]->Branch("step_isCherenkov", &v_information_to_save[i].step_isCherenkov);
@@ -78,6 +79,7 @@ void MyDataExtract::ResetVariable() {
         v_information_to_save[i].step_t.clear();
         v_information_to_save[i].step_Edep.clear();
         v_information_to_save[i].step_Equench.clear();
+        v_information_to_save[i].step_KineticE.clear();
         v_information_to_save[i].step_dx.clear();
         v_information_to_save[i].step_Chamber_ID.clear();
         v_information_to_save[i].step_isCherenkov.clear();
@@ -109,6 +111,7 @@ void MyDataExtract::ResetVariable() {
                 v_information_to_save[i].step_t.push_back(hit->time);
                 v_information_to_save[i].step_Edep.push_back(hit->GetEdep());
                 v_information_to_save[i].step_Equench.push_back(hit->fEquench);
+                v_information_to_save[i].step_KineticE.push_back(hit->fKineticE);
                 v_information_to_save[i].step_dx.push_back(hit->fStepLength);
                 v_information_to_save[i].step_Chamber_ID.push_back(hit->GetChamberNb());
                 v_information_to_save[i].step_isCherenkov.push_back(hit->isCherenkov);

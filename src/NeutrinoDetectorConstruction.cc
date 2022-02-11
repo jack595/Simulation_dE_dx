@@ -35,6 +35,16 @@ NeutrinoDetectorConstruction::~NeutrinoDetectorConstruction()
 {
 }
 
+void NeutrinoDetectorConstruction::SetLengthOfLS(float L_LS)
+{
+    m_L_LS = L_LS;
+}
+
+void NeutrinoDetectorConstruction::SetLengthOfSpeedBump(float L_SpeedBump)
+{
+    m_L_SpeedBump = L_SpeedBump;
+}
+
 G4VPhysicalVolume* NeutrinoDetectorConstruction::Construct()
 {
     // initialize materials
@@ -89,10 +99,12 @@ void NeutrinoDetectorConstruction::ConstructDetector()
                                                         false,           // no boolean operations
                                                         0);              // copy number
 
+
+
     //-------------------- Chamber ------------------------
-    G4double ChamberLength_x = 10. * cm, ChamberLength_y = 10. * cm, ChamberLength_z = 220. * cm;
+    G4double ChamberLength_x = 30. * cm, ChamberLength_y = 30. * cm, ChamberLength_z = 220. * cm;
     auto *Chamber = new G4Box("Chamber", 0.5 * ChamberLength_x, 0.5 * ChamberLength_y, 0.5 * ChamberLength_z);
-    auto *Chamber_log = new G4LogicalVolume(Chamber, air, "Chamber_log", 0, 0, 0);
+    auto *Chamber_log = new G4LogicalVolume(Chamber, vacuum, "Chamber_log", 0, 0, 0);
     G4ThreeVector Chamberpos(0. * mm, 0. * mm, 0. * mm);
     G4RotationMatrix Chamberrot;
     Chamberrot.rotateY(90. * deg);
@@ -113,13 +125,15 @@ void NeutrinoDetectorConstruction::ConstructDetector()
     G4double distance_PMT_to_LS = 100 * cm;
 
     G4double Al_thickness = 0.1 * mm;
-    G4double Acrylic_thickness = 1 * mm;
-    G4double GdLS_Length = 3 * mm;
-    G4double GdLS_r = 1.5 * mm;
+    G4double Acrylic_thickness = 0.2 * mm;
+    G4double GdLS_Length = m_L_LS * mm;
+    G4double GdLS_r = 2.5* 2 * cm;
+//    G4double GdLS_Length = 3 * mm;
+//    G4double GdLS_r = 1.5 * mm;
     G4double Acrylic_r = GdLS_r + Acrylic_thickness;
     G4double Acrylic_Length = GdLS_Length + 2 * Acrylic_thickness;
     G4double SiOil_r = Acrylic_r;
-    G4double SiOil_thickness = 0.1 * mm;
+    G4double distance_PMT_near = m_distance_PMT_near * cm;
 
     G4LogicalVolume* mother_log_of_LS = NULL;
     if (use_tank)
@@ -129,8 +143,9 @@ void NeutrinoDetectorConstruction::ConstructDetector()
         if (box_LS)
             Tank = new G4Box("Tank",
                              Acrylic_r,
-                             Acrylic_r,
-                             0.5 * Acrylic_Length);
+                             0.5 * Acrylic_Length,
+                             Acrylic_r
+                             );
         else
             Tank = new G4Tubs("Tank",
                                   0. * mm,
@@ -166,10 +181,10 @@ void NeutrinoDetectorConstruction::ConstructDetector()
     if (box_LS)
         GdLS_solid = new G4Box("GdLS_solid",
                                 GdLS_r,
-                                GdLS_r,
-                                0.5 * GdLS_Length);
+                                0.5 * GdLS_Length,
+                                GdLS_r);
     else
-        GdLS_solid = new G4Tubs("GdLS_solid",
+    GdLS_solid = new G4Tubs("GdLS_solid",
                                         0. * mm,
                                         GdLS_r,
                                         0.5 * GdLS_Length,
@@ -197,28 +212,46 @@ void NeutrinoDetectorConstruction::ConstructDetector()
     GdLS_visatt->SetForceAuxEdgeVisible(true);
     GdLS_log->SetVisAttributes(GdLS_visatt);
 
+    //-------------------- Speed Bump---------------------------
+    if (add_speed_bump)
+    {
+        G4double SpeedBumpLength_x = 10.*cm , SpeedBumpLength_y = m_L_SpeedBump*cm, SpeedBumpLength_z = 10.*cm;
+        G4double distance_SpeedBump_to_Chamber = 1.*cm;
+        auto * SpeedBump = new G4Box("SpeedBump", 0.5*SpeedBumpLength_x, 0.5*SpeedBumpLength_y, 0.5*SpeedBumpLength_z);
+        auto * SpeedBump_log = new G4LogicalVolume(SpeedBump, Al, "SpeedBump_log", 0, 0, 0 );
+        G4ThreeVector SpeedBumpPos(0.*mm,  0.5 *(ChamberLength_y + 2 * distance_SpeedBump_to_Chamber+SpeedBumpLength_y), 0.*mm);
+        auto * SpeedBump_phys = new G4PVPlacement(0,
+                                                  SpeedBumpPos,
+                                                  SpeedBump_log,
+                                                  "SpeedBump_phys",
+                                                  expHall_log,
+                                                  false,
+                                                  0);
+    }
+
+
 //-------------------- SiOil ------------------------
-    G4CSGSolid* SiOil;
-    if (box_LS)
-        SiOil = new G4Box("SiOil",
-                           SiOil_r,
-                           SiOil_r,
-                           0.5*SiOil_thickness);
-    else
-        SiOil = new G4Tubs("SiOil",
-                       0. * mm,
-                       SiOil_r,
-                       0.5 * SiOil_thickness,
-                       0. * deg,
-                       360. * deg);
-
-
-    G4LogicalVolume *SiOil_log = new G4LogicalVolume(SiOil,
-                                                     Oil,
-                                                     "SiOil_log",
-                                                     0,
-                                                     0,
-                                                     0);
+//    G4CSGSolid* SiOil;
+//    if (box_LS)
+//        SiOil = new G4Box("SiOil",
+//                           SiOil_r,
+//                           SiOil_r,
+//                           0.5*distance_PMT_near);
+//    else
+//        SiOil = new G4Tubs("SiOil",
+//                       0. * mm,
+//                       SiOil_r,
+//                       0.5 * distance_PMT_near,
+//                       0. * deg,
+//                       360. * deg);
+//
+//
+//    G4LogicalVolume *SiOil_log = new G4LogicalVolume(SiOil,
+//                                                     Oil,
+//                                                     "SiOil_log",
+//                                                     0,
+//                                                     0,
+//                                                     0);
 
 
     // --------------- PMT ---------------------------------
@@ -260,7 +293,7 @@ void NeutrinoDetectorConstruction::ConstructDetector()
 
     auto* PMT_phys_near = new G4PVPlacement(0,
                     G4ThreeVector(0, 0,  -0.5 *
-                                        (Acrylic_Length + 2 * SiOil_thickness +
+                                        (Acrylic_r*2 + 2 * distance_PMT_near +
                                          PMT_thickness)),    // at (x,y,z)
                     PMT_log,   // its logical volume
                     "PMT_phys_near",    // its name
@@ -272,7 +305,7 @@ void NeutrinoDetectorConstruction::ConstructDetector()
     PMT_rotate->rotateY(180*deg);
     auto* PMT_phys_far = new G4PVPlacement(PMT_rotate,
                       G4ThreeVector(0, 0,  0.5 *
-                                          (Acrylic_Length + 2 * distance_PMT_to_LS +
+                                          (Acrylic_r*2 + 2 * distance_PMT_to_LS +
                                            PMT_thickness)),    // at (x,y,z)
                       PMT_log,   // its logical volume
                       "PMT_phys_far",    // its name
@@ -297,7 +330,7 @@ void NeutrinoDetectorConstruction::ConstructDetector()
 //    /////////////////////// PMT for Quenching factor measurement ( near LS ) ////////////////////////////////////////////////////
 //    G4VPhysicalVolume *SiOil_phys = new G4PVPlacement(0,
 //                                                      G4ThreeVector(0, 0,   -0.5 * (Acrylic_Length +
-//                                                                                               SiOil_thickness)),    // at (x,y,z)
+//                                                                                               distance_PMT_near)),    // at (x,y,z)
 //                                                      SiOil_log,   // its logical volume
 //                                                      "SiOil_phys",    // its name
 //                                                      Chamber_log,      // its mother  volume
@@ -305,7 +338,7 @@ void NeutrinoDetectorConstruction::ConstructDetector()
 //                                                      0);
 //    auto *PMT_phys_near = new G4PVPlacement(0,
 //                                            G4ThreeVector(0, 0,  -0.5 *
-//                                                                (Acrylic_Length + 2 * SiOil_thickness +
+//                                                                (Acrylic_Length + 2 * distance_PMT_near +
 //                                                                 PMT_thickness)),    // at (x,y,z)
 //                                            PMT_log_near,   // its logical volume
 //                                            "PMT_phys_near",    // its name
@@ -406,6 +439,8 @@ void NeutrinoDetectorConstruction::ConstructMaterials()
     G4Element* S  = new G4Element("Sulfur", "S", 16., 32.066*g/mole);
     G4Element* Cr = new G4Element("Cr", "Cr", 24, 51.9961*g/mole);
     G4Element* Ni = new G4Element("Ni", "Ni", 28, 58.6934*g/mole);
+    G4Element* Cl = new G4Element("Cl", "Cl", 17, 35.45*g/mole);
+
 
 
     G4Element* TS_H_of_Water = G4Element::GetElement("TS_H_of_Water", any_warnings);
@@ -596,6 +631,16 @@ void NeutrinoDetectorConstruction::ConstructMaterials()
     AcrylicPropertiesTable->AddProperty("RAYLEIGH", AcrylicRayEnergy,AcrylicRayLength, 11);
     Acrylic->SetMaterialPropertiesTable(AcrylicPropertiesTable);
 
+    // PVC
+    density = 1.42*g/cm3;
+    PVC = new G4Material("PVC", density, 3);
+    PVC->AddElement(C, 0.369*perCent);
+    PVC->AddElement(H, 0.04615*perCent);
+    PVC->AddElement(Cl, 0.5385*perCent);
+    auto* PVCPropertiesTable= new G4MaterialPropertiesTable();
+    PVCPropertiesTable->AddProperty("RINDEX", PVCRefEnergy, PVCRefIndex, 2);
+    PVC->SetMaterialPropertiesTable(PVCPropertiesTable);
+
     // GdLS
     // COMMENT: element component no elS ?
     density = 0.855*g/cm3;
@@ -715,6 +760,17 @@ void NeutrinoDetectorConstruction::ConstructMaterials()
     OilMPT->AddProperty("ABSLENGTH", &fPP_Oil_ABS[0], &fOilABSORPTION[0],
                         543);
     Oil->SetMaterialPropertiesTable(OilMPT);
+
+    // alminium
+    G4double  A, Z;
+    A= 26.98 *g/mole;
+    density= 2.70 *g/cm3;
+    Al = new G4Material("Al", Z=13., A, density);
+
+    // lead
+    A= 207.2 *g/mole;
+    density= 11.35 *g/cm3;
+    Pb = new G4Material("Lead", Z=82., A, density);
 }
 
 void NeutrinoDetectorConstruction::ConstructSDandField()

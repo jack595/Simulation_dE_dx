@@ -4125,9 +4125,19 @@ double AcrylicAbsLength[25] = {
 8.0e-3*mm
   };
 
-  
- 
+ // PVC
+ double PVCRefEnergy[2] = {
+         1.55  *eV,
+         15.5  *eV
+ };
+ double PVCRefIndex[2] = {
+         1.531,
+         1.531
+ };
 
+
+ 
+ // Acrylic
   double AcrylicRayEnergy[11] = {
                1.55   *eV,
                1.7714 *eV,

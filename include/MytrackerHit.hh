@@ -53,6 +53,7 @@ public:
       G4int         fpdgID;
       G4double      time;
       G4int         isCherenkov;
+      G4double      fKineticE;
 
 };
 
