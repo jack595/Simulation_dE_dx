@@ -102,7 +102,7 @@ void NeutrinoDetectorConstruction::ConstructDetector()
 
 
     //-------------------- Chamber ------------------------
-    G4double ChamberLength_x = 30. * cm, ChamberLength_y = 30. * cm, ChamberLength_z = 220. * cm;
+    G4double ChamberLength_x = 7. * cm, ChamberLength_y = 7. * cm, ChamberLength_z = 220. * cm;
     auto *Chamber = new G4Box("Chamber", 0.5 * ChamberLength_x, 0.5 * ChamberLength_y, 0.5 * ChamberLength_z);
     auto *Chamber_log = new G4LogicalVolume(Chamber, vacuum, "Chamber_log", 0, 0, 0);
     G4ThreeVector Chamberpos(0. * mm, 0. * mm, 0. * mm);
@@ -634,9 +634,9 @@ void NeutrinoDetectorConstruction::ConstructMaterials()
     // PVC
     density = 1.42*g/cm3;
     PVC = new G4Material("PVC", density, 3);
-    PVC->AddElement(C, 0.369*perCent);
-    PVC->AddElement(H, 0.04615*perCent);
-    PVC->AddElement(Cl, 0.5385*perCent);
+    PVC->AddElement(C, 0.384*perCent);
+    PVC->AddElement(H, 0.048*perCent);
+    PVC->AddElement(Cl, 0.568*perCent);
     auto* PVCPropertiesTable= new G4MaterialPropertiesTable();
     PVCPropertiesTable->AddProperty("RINDEX", PVCRefEnergy, PVCRefIndex, 2);
     PVC->SetMaterialPropertiesTable(PVCPropertiesTable);

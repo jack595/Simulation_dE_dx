@@ -45,6 +45,7 @@ int main(int argc, char **argv){
     float L_SpeedBump = 1;//cm
     bool add_rad_source = false;
     float distance_PMT_near = 1; //cm
+    bool optical = false;
 
     for(int i=1;i<argc;i++){
         if(strcmp(argv[i],"-seed") == 0){
@@ -74,7 +75,13 @@ int main(int argc, char **argv){
             i++;
             add_rad_source = true;
             G4cout << "Turn on add source mode!"<<G4endl;
+        }else if(strcmp(argv[i], "-optical")==0)
+        {
+            i++;
+            optical = true;
+            G4cout << "Running optical mode.........."<<G4endl;
         }
+
     }
 
     CLHEP::HepRandom::setTheSeed(seed);
@@ -90,7 +97,9 @@ int main(int argc, char **argv){
     runManager->SetUserInitialization(detectorConstruction);
     
     // physics list
-    G4VModularPhysicsList* physicsList = new NeutrinoPhysicsList;
+//    G4VModularPhysicsList* physicsList = new NeutrinoPhysicsList;
+    NeutrinoPhysicsList* physicsList = new NeutrinoPhysicsList;
+    physicsList->SetOpticalList(optical);
     runManager->SetUserInitialization(physicsList);
     
     // generator

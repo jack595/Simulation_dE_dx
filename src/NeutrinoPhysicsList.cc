@@ -181,6 +181,7 @@ void NeutrinoPhysicsList::ConstructParticle()
 
     // construct optical physics list
     opticalList = new DsPhysConsOptical();
+    opticalList->SetOpticalOption(m_optical);
     opticalList->ConstructParticle();
 
     /// Special hook: change the PDG encoded value for optical photons to be unique and useful.

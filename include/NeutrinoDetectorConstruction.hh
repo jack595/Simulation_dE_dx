@@ -68,7 +68,7 @@ class NeutrinoDetectorConstruction : public G4VUserDetectorConstruction
         G4VPhysicalVolume*  physWorld;
 
         const bool box_LS = true;
-        const bool use_tank=true;
+        const bool use_tank= false;
         const bool add_periphery_detectors=false;
         const bool add_speed_bump = false;
 

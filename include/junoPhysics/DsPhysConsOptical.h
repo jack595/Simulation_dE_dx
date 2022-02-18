@@ -30,6 +30,12 @@ public:
     void ConstructParticle();
     void ConstructProcess();
 
+    void SetOpticalOption(bool optical)
+    {
+        m_useCerenkov=optical;
+        m_useScintillation=optical;
+    }
+
 private:
     int  m_opticksMode ; 
     /// Property: UseCerenkov, UseScintillation, UseRayleigh, UseAbsorption

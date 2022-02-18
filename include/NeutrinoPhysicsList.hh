@@ -31,6 +31,7 @@
 
 #include "G4VModularPhysicsList.hh"
 #include "globals.hh"
+#include "junoPhysics/DsPhysConsOptical.h"
 #include <vector>
 
 class G4VPhysicsConstructor;
@@ -52,6 +53,7 @@ public:
   void SetCutForPositron(G4double);
 
   void ConstructProcess();
+  void SetOpticalList(bool optical){m_optical = optical;}
 
 private:
 
@@ -62,6 +64,7 @@ private:
   G4double cutForGamma;
   G4double cutForElectron;
   G4double cutForPositron;
+  bool m_optical;
 
   G4VPhysicsConstructor*  electroNuList;
   G4VPhysicsConstructor*  emPhysicsList;
@@ -73,7 +76,9 @@ private:
   G4VPhysicsConstructor*  hadronList;
   G4VPhysicsConstructor*  stoppingList;
   G4VPhysicsConstructor*  ionList;
-  G4VPhysicsConstructor*  opticalList;
+//  G4VPhysicsConstructor*  opticalList;
+   DsPhysConsOptical*  opticalList;
+
 };
 
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......

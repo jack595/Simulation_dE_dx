@@ -96,9 +96,9 @@ void MyDataExtract::ResetVariable() {
 
             v_information_to_save[i].evtID=event->GetEventID();
 
-//            G4ThreeVector v_position_EdepCenter=GetEdepCenter(fHitsCollection,v_information_to_save[i].Edep_event);
-//            for(int j=0;j<v_position_EdepCenter.SIZE;j++)
-//                v_information_to_save[i].center_Edep[j] = v_position_EdepCenter[j]*100;
+            G4ThreeVector v_position_EdepCenter=GetEdepCenter(fHitsCollection,v_information_to_save[i].Edep_event);
+            for(int j=0;j<v_position_EdepCenter.SIZE;j++)
+                v_information_to_save[i].center_Edep[j] = v_position_EdepCenter[j]*100;
 
             for(int j=0;j<fHitsCollection->entries();j++)
             {
