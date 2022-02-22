@@ -125,7 +125,7 @@ void NeutrinoDetectorConstruction::ConstructDetector()
     G4double distance_PMT_to_LS = 100 * cm;
 
     G4double Al_thickness = 0.1 * mm;
-    G4double Acrylic_thickness = 0.2 * mm;
+    G4double Acrylic_thickness = m_thickness_tank * mm;
     G4double GdLS_Length = m_L_LS * mm;
     G4double GdLS_r = 2.5* 2 * cm;
 //    G4double GdLS_Length = 3 * mm;
@@ -153,12 +153,24 @@ void NeutrinoDetectorConstruction::ConstructDetector()
                                   0.5 * Acrylic_Length,
                                   0. * deg,
                                   360. * deg);
-        G4LogicalVolume *Tank_log = new G4LogicalVolume(Tank,
-                                                        Acrylic,
-                                                        "Tank_log",
-                                                        0,
-                                                        0,
-                                                        0);
+        G4LogicalVolume *Tank_log;
+        if(m_use_quartz){
+            Tank_log = new G4LogicalVolume(Tank,
+                                       Quartz,
+                                       "Tank_log",
+                                       0,
+                                       0,
+                                       0);
+        }
+        else
+        {
+            Tank_log = new G4LogicalVolume(Tank,
+                                           Acrylic,
+                                           "Tank_log",
+                                           0,
+                                           0,
+                                           0);
+        }
         G4VPhysicalVolume *Tank_phys = new G4PVPlacement(0,
                                                          G4ThreeVector(0, 0, 0),    // at (x,y,z)
                                                          Tank_log,   // its logical volume
@@ -634,12 +646,23 @@ void NeutrinoDetectorConstruction::ConstructMaterials()
     // PVC
     density = 1.42*g/cm3;
     PVC = new G4Material("PVC", density, 3);
-    PVC->AddElement(C, 0.384*perCent);
-    PVC->AddElement(H, 0.048*perCent);
-    PVC->AddElement(Cl, 0.568*perCent);
+    PVC->AddElement(C, 2);
+    PVC->AddElement(H, 3);
+    PVC->AddElement(Cl, 1);
     auto* PVCPropertiesTable= new G4MaterialPropertiesTable();
     PVCPropertiesTable->AddProperty("RINDEX", PVCRefEnergy, PVCRefIndex, 2);
     PVC->SetMaterialPropertiesTable(PVCPropertiesTable);
+
+
+    // quartz (SiO2, crystalline)
+    density = 2.649 *g/cm3;
+    Quartz = new G4Material("Quartz", density, 2);
+    Quartz-> AddElement(Si, 1);
+    Quartz-> AddElement(O,  2);
+    auto* QuartzPropertiesTable= new G4MaterialPropertiesTable();
+    QuartzPropertiesTable->AddProperty("RINDEX", QuartzRefEnergy, QuartzRefIndex, 101);
+    PVC->SetMaterialPropertiesTable(QuartzPropertiesTable);
+
 
     // GdLS
     // COMMENT: element component no elS ?

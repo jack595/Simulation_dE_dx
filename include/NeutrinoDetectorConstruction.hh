@@ -35,6 +35,9 @@ class NeutrinoDetectorConstruction : public G4VUserDetectorConstruction
         void SetLengthOfLS(float );
         void SetLengthOfSpeedBump( float );
         void SetDistanceOfNearPMT(float d_PMT){m_distance_PMT_near=d_PMT;}
+        void SetThicknessOfTank(float thickness_tank) {m_thickness_tank=thickness_tank;}
+        void WhetherTurnOnTank(bool turn_on_tank){use_tank=turn_on_tank;}
+        void WhetherUseQuartz(bool use_quartz) {m_use_quartz=use_quartz;}
 
     MyDataExtract* data_extract;
 
@@ -61,6 +64,7 @@ class NeutrinoDetectorConstruction : public G4VUserDetectorConstruction
         G4Material* LAB;
         G4Material* Al;
         G4Material* Pb;
+        G4Material* Quartz;
         
         // world
         G4VSolid*           solidWorld;
@@ -68,13 +72,15 @@ class NeutrinoDetectorConstruction : public G4VUserDetectorConstruction
         G4VPhysicalVolume*  physWorld;
 
         const bool box_LS = true;
-        const bool use_tank= false;
+        bool use_tank= true;
         const bool add_periphery_detectors=false;
         const bool add_speed_bump = false;
+        bool m_use_quartz ;
 
         float m_L_LS;
         float m_L_SpeedBump;
         float m_distance_PMT_near;
+        float m_thickness_tank;
 
 
 

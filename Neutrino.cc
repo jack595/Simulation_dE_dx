@@ -42,10 +42,13 @@ int main(int argc, char **argv){
     char* macName = NULL;
     char* name_outfile = NULL;
     float L_LS = 3;// mm
+    float thickness_tank = 1; //mm
     float L_SpeedBump = 1;//cm
     bool add_rad_source = false;
     float distance_PMT_near = 1; //cm
     bool optical = false;
+    bool use_tank = false;
+    bool use_quartz = true;
 
     for(int i=1;i<argc;i++){
         if(strcmp(argv[i],"-seed") == 0){
@@ -66,6 +69,7 @@ int main(int argc, char **argv){
         }else if(strcmp(argv[i], "-L_LS") == 0 ){
             i++;
             L_LS = std::atof(argv[i]);
+            std::cout<< "LS Length:\t"<<L_LS<< " mm" <<std::endl;
         }else if(strcmp(argv[i], "-L_SpeedBump") == 0 )
         {
             i++;
@@ -80,8 +84,23 @@ int main(int argc, char **argv){
             i++;
             optical = true;
             G4cout << "Running optical mode.........."<<G4endl;
+        }else if(strcmp(argv[i], "-L_tank")==0)
+        {
+            i++;
+            thickness_tank = std::atof(argv[i]);
+            G4cout << "Thickness of Tank:\t"<<thickness_tank<<" mm"<<G4endl;
+        }else if(strcmp(argv[i], "-UseTank")==0)
+        {
+            i++;
+            use_tank = true;
+            G4cout << "Added LS tank.........."<<G4endl;
         }
-
+        else if(strcmp(argv[i], "-UseAcrylic")==0)
+        {
+            i++;
+            use_quartz = false;
+            std::cout<< "Using acrylic tank........" <<std::endl;
+        }
     }
 
     CLHEP::HepRandom::setTheSeed(seed);
@@ -90,10 +109,12 @@ int main(int argc, char **argv){
     /* Initialization classes (mandatory) */
     // detector
     NeutrinoDetectorConstruction* detectorConstruction = new NeutrinoDetectorConstruction();
-    std::cout<< "LS Length:\t"<<L_LS<< " mm" <<std::endl;
     detectorConstruction->SetLengthOfLS(L_LS);
     detectorConstruction->SetLengthOfSpeedBump(L_SpeedBump);
     detectorConstruction->SetDistanceOfNearPMT(distance_PMT_near);
+    detectorConstruction->SetThicknessOfTank(thickness_tank);
+    detectorConstruction->WhetherTurnOnTank(use_tank);
+    detectorConstruction->WhetherUseQuartz(use_quartz);
     runManager->SetUserInitialization(detectorConstruction);
     
     // physics list
