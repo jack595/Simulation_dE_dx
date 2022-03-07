@@ -122,20 +122,31 @@ void NeutrinoDetectorConstruction::ConstructDetector()
     G4double R_PMT = 25.4 * mm; // 2 inches
     G4double PMT_thickness = 1 * cm;
     G4double PMT_thickness_base = 0.8 * cm;
-    G4double distance_PMT_to_LS = 100 * cm;
+    G4double distance_PMT_to_LS = m_distance_PMT_near * cm;
 
     G4double Al_thickness = 0.1 * mm;
     G4double Acrylic_thickness = m_thickness_tank * mm;
     G4double GdLS_Length = m_L_LS * mm;
-    G4double GdLS_r = 2.5* 2 * cm;
-//    G4double GdLS_Length = 3 * mm;
-//    G4double GdLS_r = 1.5 * mm;
+    G4double GdLS_r = m_GdLS_r * cm;
     G4double Acrylic_r = GdLS_r + Acrylic_thickness;
     G4double Acrylic_Length = GdLS_Length + 2 * Acrylic_thickness;
+
     G4double SiOil_r = Acrylic_r;
+
+    // Set ESR film
+    G4double ESR_thickness = 0.0508 * mm;
+    G4double ESR_R;
+    if (use_tank)
+        ESR_R = Acrylic_r;
+    else
+        ESR_R = GdLS_r;
+
+
     G4double distance_PMT_near = m_distance_PMT_near * cm;
 
     G4LogicalVolume* mother_log_of_LS = NULL;
+    G4VPhysicalVolume *Tank_phys;
+    G4LogicalVolume *Tank_log;
     if (use_tank)
     {
         //-------------------- Acrylic tank  ----------------------------------------
@@ -153,7 +164,6 @@ void NeutrinoDetectorConstruction::ConstructDetector()
                                   0.5 * Acrylic_Length,
                                   0. * deg,
                                   360. * deg);
-        G4LogicalVolume *Tank_log;
         if(m_use_quartz){
             Tank_log = new G4LogicalVolume(Tank,
                                        Quartz,
@@ -171,13 +181,13 @@ void NeutrinoDetectorConstruction::ConstructDetector()
                                            0,
                                            0);
         }
-        G4VPhysicalVolume *Tank_phys = new G4PVPlacement(0,
-                                                         G4ThreeVector(0, 0, 0),    // at (x,y,z)
-                                                         Tank_log,   // its logical volume
-                                                         "Tank_phys",    // its name
-                                                         Chamber_log,      // its mother  volume
-                                                         false,           // no boolean operations
-                                                         0);
+        Tank_phys = new G4PVPlacement(0,
+                                      G4ThreeVector(0, 0, 0),    // at (x,y,z)
+                                      Tank_log,   // its logical volume
+                                      "Tank_phys",    // its name
+                                      Chamber_log,      // its mother  volume
+                                      false,           // no boolean operations
+                                      0);
         G4VisAttributes *Tank_visatt = new G4VisAttributes(G4Colour(0.0, 1.0, 0.0)); //green
         Tank_visatt->SetForceWireframe(true);
         Tank_visatt->SetForceAuxEdgeVisible(true);
@@ -223,6 +233,58 @@ void NeutrinoDetectorConstruction::ConstructDetector()
     GdLS_visatt->SetForceWireframe(true);
     GdLS_visatt->SetForceAuxEdgeVisible(true);
     GdLS_log->SetVisAttributes(GdLS_visatt);
+
+    G4VPhysicalVolume *ESR_phys_upper;
+    G4VPhysicalVolume *ESR_phys_bottom;
+    if (m_add_ESR)
+    {
+        auto* ESR_solid = new G4Box("ESR_solid",
+                               ESR_R,
+                               0.5 * ESR_thickness,
+                               ESR_R);
+        auto* ESR_log = new G4LogicalVolume(ESR_solid,
+                                                        Acrylic,
+                                                        "ESR_log",
+                                                        0,
+                                                        0,
+                                                        0);
+
+        G4double ESR_y;
+        if (use_tank)
+            ESR_y = (Acrylic_Length +ESR_thickness)*0.5;
+        else
+            ESR_y = (GdLS_Length + ESR_thickness)*0.5;
+
+        ESR_phys_upper = new G4PVPlacement(0,
+                                           G4ThreeVector(0, ESR_y, 0),    // at (x,y,z)
+                                           ESR_log,   // its logical volume
+                                           "ESR_phys_upper",    // its name
+                                           Chamber_log,      // its mother  volume
+                                           false,           // no boolean operations
+                                           0);
+        ESR_phys_bottom = new G4PVPlacement(0,
+                                            G4ThreeVector(0, -ESR_y, 0),    // at (x,y,z)
+                                            ESR_log,   // its logical volume
+                                            "ESR_phys_bottom",    // its name
+                                            Chamber_log,      // its mother  volume
+                                            false,           // no boolean operations
+                                            1);
+
+//        ESR_phys_upper = new G4PVPlacement(0,
+//                                      G4ThreeVector(0, ESR_y, 0),    // at (x,y,z)
+//                                      ESR_log,   // its logical volume
+//                                      "ESR_phys_upper",    // its name
+//                                      Chamber_log,      // its mother  volume
+//                                      false,           // no boolean operations
+//                                      0);
+//        ESR_phys_bottom = new G4PVPlacement(0,
+//                                     G4ThreeVector(0, -ESR_y, 0),    // at (x,y,z)
+//                                     ESR_log,   // its logical volume
+//                                     "ESR_phys_bottom",    // its name
+//                                     Chamber_log,      // its mother  volume
+//                                     false,           // no boolean operations
+//                                     1);
+    }
 
     //-------------------- Speed Bump---------------------------
     if (add_speed_bump)
@@ -325,53 +387,6 @@ void NeutrinoDetectorConstruction::ConstructDetector()
                       false,           // no boolean operations
                       1);
 
-//    auto *PMT_log_near = new G4LogicalVolume(PMT,
-//                                        Photocathode_mat_Ham20inch,
-//                                        "PMT_log_near",
-//                                        0,
-//                                        0,
-//                                        0);
-//    auto *PMT_log_far = new G4LogicalVolume(PMT,
-//                                        Photocathode_mat_Ham20inch,
-//                                        "PMT_log_far",
-//                                        0,
-//                                        0,
-//                                        0);
-//
-//
-//    /////////////////////// PMT for Quenching factor measurement ( near LS ) ////////////////////////////////////////////////////
-//    G4VPhysicalVolume *SiOil_phys = new G4PVPlacement(0,
-//                                                      G4ThreeVector(0, 0,   -0.5 * (Acrylic_Length +
-//                                                                                               distance_PMT_near)),    // at (x,y,z)
-//                                                      SiOil_log,   // its logical volume
-//                                                      "SiOil_phys",    // its name
-//                                                      Chamber_log,      // its mother  volume
-//                                                      false,           // no boolean operations
-//                                                      0);
-//    auto *PMT_phys_near = new G4PVPlacement(0,
-//                                            G4ThreeVector(0, 0,  -0.5 *
-//                                                                (Acrylic_Length + 2 * distance_PMT_near +
-//                                                                 PMT_thickness)),    // at (x,y,z)
-//                                            PMT_log_near,   // its logical volume
-//                                            "PMT_phys_near",    // its name
-//                                            Chamber_log,      // its mother  volume
-//                                            false,           // no boolean operations
-//                                            0);
-//    //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
-//
-//    /////////////////////// PMT for Time profile measurement ( far from LS ) ///////////////////////////////////////////////////
-//    G4VPhysicalVolume *PMT_phys = new G4PVPlacement(0,
-//                                                    G4ThreeVector(0, 0,  0.5 *
-//                                                                        (Acrylic_Length + 2 * distance_PMT_to_LS +
-//                                                                         PMT_thickness)),    // at (x,y,z)
-//                                                    PMT_log_far,   // its logical volume
-//                                                    "PMT_phys_far",    // its name
-//                                                    Chamber_log,      // its mother  volume
-//                                                    false,           // no boolean operations
-//                                                    0);
-//    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 
     if (add_periphery_detectors)
@@ -419,15 +434,38 @@ void NeutrinoDetectorConstruction::ConstructDetector()
     PMT_visatt->SetForceAuxEdgeVisible(true);
     PMT_log->SetVisAttributes(PMT_visatt);
 //    PMT_log_near->SetVisAttributes(PMT_visatt);
+
 //------------------------------ SkinSurface -----------------------------------
 //        new G4LogicalSkinSurface("RefOpSurface", Alfilm_log, MirrorSurface);
     auto* PMTRefOpSurface1 = new G4OpticalSurface("PMTRefOpSurface");
     PMTRefOpSurface1->SetType(dielectric_metal);
     PMTRefOpSurface1->SetMaterialPropertiesTable(Photocathode_mat_Ham3inch->GetMaterialPropertiesTable());
     new G4LogicalBorderSurface("PMTOpSurface", PMT_phys_near, PMT_phys, PMTRefOpSurface1);
+    new G4LogicalBorderSurface("PMTOpSurface", PMT_phys, PMT_phys_near, PMTRefOpSurface1);
     new G4LogicalBorderSurface("PMTOpSurface", PMT_phys_far, PMT_phys, PMTRefOpSurface1);
+    new G4LogicalBorderSurface("PMTOpSurface", PMT_phys, PMT_phys_far, PMTRefOpSurface1);
 //    new G4LogicalSkinSurface("PMTOpSurface", PMT_base_log, PMTRefOpSurface1);
 
+//----------------------------- ESRSurface ------------------------------------
+    if (m_add_ESR)
+    {
+        auto* ESRRefOpSurface = new G4OpticalSurface("ESRRefOpSurface");
+        ESRRefOpSurface->SetType(dielectric_metal);
+        ESRRefOpSurface->SetModel(unified);
+        ESRRefOpSurface->SetType(dielectric_metal);
+        ESRRefOpSurface->SetFinish(polished);
+        ESRRefOpSurface->SetMaterialPropertiesTable(ESR->GetMaterialPropertiesTable());
+        if (use_tank)
+        {
+            new G4LogicalBorderSurface("ESROpSurface", Tank_phys, ESR_phys_bottom, ESRRefOpSurface);
+            new G4LogicalBorderSurface("ESROpSurface",  Tank_phys, ESR_phys_upper, ESRRefOpSurface);
+        }
+        else
+        {
+            new G4LogicalBorderSurface("ESROpSurface_bottom", ESR_phys_bottom, GdLS_phys, ESRRefOpSurface);
+            new G4LogicalBorderSurface("ESROpSurface_upper", ESR_phys_upper,  GdLS_phys, ESRRefOpSurface);
+        }
+    }
 
 
 }
@@ -652,6 +690,21 @@ void NeutrinoDetectorConstruction::ConstructMaterials()
     auto* PVCPropertiesTable= new G4MaterialPropertiesTable();
     PVCPropertiesTable->AddProperty("RINDEX", PVCRefEnergy, PVCRefIndex, 2);
     PVC->SetMaterialPropertiesTable(PVCPropertiesTable);
+
+    // ESR mirror
+    ESR = new G4Material("ESR", 1.0*g/cm3, 2);
+    ESR->AddElement(H, 2.*1.00794/(12.0107+2.*1.00794));
+    ESR->AddElement(C, 12.0107/(12.0107+2.*1.00794));
+
+    auto ESRMPT = new G4MaterialPropertiesTable();
+    ESRMPT->AddProperty("ABSLENGTH", ESREnergy, ESRAbsorptionLength, 31);
+    ESRMPT->AddProperty("REFLECTIVITY", ESREnergy, ESRReflectivity, 31);
+    ESRMPT->AddProperty("SPECULARLOBECONSTANT", ESREnergy, ESRSpecularlobe, 31);
+    ESRMPT->AddProperty("SPECULARSPIKECONSTANT", ESREnergy, ESRSpecularspike, 31);
+    ESRMPT->AddProperty("RINDEX", ESREnergy, ESRRefractionIndex, 31);
+
+    ESR->SetMaterialPropertiesTable(ESRMPT);
+
 
 
     // quartz (SiO2, crystalline)

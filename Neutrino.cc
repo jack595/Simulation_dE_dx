@@ -49,6 +49,8 @@ int main(int argc, char **argv){
     bool optical = false;
     bool use_tank = false;
     bool use_quartz = true;
+    float r_LS = 2.5; //cm
+    bool add_ESR = false;
 
     for(int i=1;i<argc;i++){
         if(strcmp(argv[i],"-seed") == 0){
@@ -69,39 +71,48 @@ int main(int argc, char **argv){
         }else if(strcmp(argv[i], "-L_LS") == 0 ){
             i++;
             L_LS = std::atof(argv[i]);
-            std::cout<< "LS Length:\t"<<L_LS<< " mm" <<std::endl;
         }else if(strcmp(argv[i], "-L_SpeedBump") == 0 )
         {
             i++;
             L_SpeedBump = std::atof(argv[i]);
         }else if(strcmp(argv[i], "-AddSource")==0)
         {
-            i++;
             add_rad_source = true;
             G4cout << "Turn on add source mode!"<<G4endl;
         }else if(strcmp(argv[i], "-optical")==0)
         {
-            i++;
             optical = true;
             G4cout << "Running optical mode.........."<<G4endl;
         }else if(strcmp(argv[i], "-L_tank")==0)
         {
             i++;
             thickness_tank = std::atof(argv[i]);
-            G4cout << "Thickness of Tank:\t"<<thickness_tank<<" mm"<<G4endl;
         }else if(strcmp(argv[i], "-UseTank")==0)
         {
-            i++;
             use_tank = true;
             G4cout << "Added LS tank.........."<<G4endl;
         }
         else if(strcmp(argv[i], "-UseAcrylic")==0)
         {
-            i++;
             use_quartz = false;
-            std::cout<< "Using acrylic tank........" <<std::endl;
+            G4cout<< "Using acrylic tank........" <<G4endl;
+        } else if (strcmp(argv[i], "-r_LS")==0)
+        {
+            i++;
+            r_LS = std::atof(argv[i]);
+        }
+        else if(strcmp(argv[i], "-Add_ESR")==0)
+        {
+            add_ESR = true;
         }
     }
+
+    // ----------- Print Simulation Configures ---------------------------
+    std::cout<< "LS Length:\t"<<L_LS<< " mm" <<std::endl;
+    G4cout << "Radius of LS:\t"<<r_LS<< " cm"<<G4endl;
+    G4cout << "Thickness of Tank:\t"<<thickness_tank<<" mm"<<G4endl;
+
+
 
     CLHEP::HepRandom::setTheSeed(seed);
 
@@ -111,10 +122,12 @@ int main(int argc, char **argv){
     NeutrinoDetectorConstruction* detectorConstruction = new NeutrinoDetectorConstruction();
     detectorConstruction->SetLengthOfLS(L_LS);
     detectorConstruction->SetLengthOfSpeedBump(L_SpeedBump);
+    detectorConstruction->SetAddESR(add_ESR);
     detectorConstruction->SetDistanceOfNearPMT(distance_PMT_near);
     detectorConstruction->SetThicknessOfTank(thickness_tank);
     detectorConstruction->WhetherTurnOnTank(use_tank);
     detectorConstruction->WhetherUseQuartz(use_quartz);
+    detectorConstruction->SetRofLS(r_LS);
     runManager->SetUserInitialization(detectorConstruction);
     
     // physics list
