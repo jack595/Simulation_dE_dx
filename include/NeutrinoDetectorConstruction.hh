@@ -37,11 +37,13 @@ class NeutrinoDetectorConstruction : public G4VUserDetectorConstruction
         void SetDistanceOfNearPMT(float d_PMT){m_distance_PMT_near=d_PMT;}
         void SetThicknessOfTank(float thickness_tank) {m_thickness_tank=thickness_tank;}
         void SetAddESR(bool add_ESR) {m_add_ESR=add_ESR;}
+        void SetAddCalib(bool add_calib) {m_add_distance2PE_calib = add_calib;}
         void WhetherTurnOnTank(bool turn_on_tank){use_tank=turn_on_tank;}
         void WhetherUseQuartz(bool use_quartz) {m_use_quartz=use_quartz;}
         void SetRofLS(float r_LS) {m_GdLS_r = r_LS;}
 
     MyDataExtract* data_extract;
+
 
     protected:
         G4EventManager* fpEventManager;
@@ -58,6 +60,7 @@ class NeutrinoDetectorConstruction : public G4VUserDetectorConstruction
         G4Material* Photocathode_mat_Ham20inch;
         G4Material* Photocathode_mat_Ham3inch;
         G4Material* Photocathode_mat_MCP20inch;
+        G4Material* Photocathode_mat_R7600U;
         G4Material* Acrylic;
         G4Material* PVC;
         G4Material* GdLS;
@@ -68,6 +71,7 @@ class NeutrinoDetectorConstruction : public G4VUserDetectorConstruction
         G4Material* Pb;
         G4Material* Quartz;
         G4Material* ESR;
+        G4Material* Tyvek;
         G4Material* ESR_surface;
         
         // world
@@ -79,8 +83,14 @@ class NeutrinoDetectorConstruction : public G4VUserDetectorConstruction
         bool use_tank= true;
         const bool add_periphery_detectors=false;
         const bool add_speed_bump = false;
+        const bool add_new_detector = false;
+        const bool add_ESR_for_new_detector = false;
         bool m_add_ESR;
+        const bool m_use_diffuse_reflection = true;
+
         bool m_use_quartz ;
+        bool m_add_distance2PE_calib;
+        const G4String v_name_PMT_calib[2] = {"1inches", "3inches"};
 
         float m_L_LS;
         float m_L_SpeedBump;

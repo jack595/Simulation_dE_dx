@@ -116,7 +116,7 @@ public: // Without description
 	////////////////////////////////
 
 	DsG4Scintillation(const G4String& processName = "Scintillation",
-                          G4ProcessType type = fElectromagnetic);
+                                            G4ProcessType type = fElectromagnetic);
 
 	// DsG4Scintillation(const DsG4Scintillation &right);
 

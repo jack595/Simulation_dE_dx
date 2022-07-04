@@ -23,6 +23,7 @@
 #include "./include/MyDataExtract.hh"
 #include "NeutrinoPrimaryGeneratorAction.hh"
 #include "TString.h"
+#include "MyTrackerSD.hh"
 
 //static variable initialization
 TFile*  MyVDataExtract::file_save_processed_data;
@@ -36,6 +37,9 @@ std::vector<bool> MyVDataExtract::v_whether_hit;
 TTree* NeutrinoPrimaryGeneratorAction::tree_generator;
 double NeutrinoPrimaryGeneratorAction::Energy_init;
 std::vector<double> NeutrinoPrimaryGeneratorAction::XYZ;
+int NeutrinoPrimaryGeneratorAction::m_evtID_gen;
+int MyTrackerSD::seed_SD;
+
 int main(int argc, char **argv){
 
     int seed = 10010;
@@ -51,6 +55,7 @@ int main(int argc, char **argv){
     bool use_quartz = true;
     float r_LS = 2.5; //cm
     bool add_ESR = false;
+    bool add_calib = false;
 
     for(int i=1;i<argc;i++){
         if(strcmp(argv[i],"-seed") == 0){
@@ -105,12 +110,18 @@ int main(int argc, char **argv){
         {
             add_ESR = true;
         }
+        else if(strcmp(argv[i], "-Add_calib")==0)
+        {
+            add_calib = true;
+            G4cout << "Turn on Calib Detector.." << G4endl;
+        }
     }
 
     // ----------- Print Simulation Configures ---------------------------
     std::cout<< "LS Length:\t"<<L_LS<< " mm" <<std::endl;
     G4cout << "Radius of LS:\t"<<r_LS<< " cm"<<G4endl;
     G4cout << "Thickness of Tank:\t"<<thickness_tank<<" mm"<<G4endl;
+    G4cout << "d_PMT_near:\t" << distance_PMT_near<<" cm" << G4endl;
 
 
 
@@ -123,12 +134,15 @@ int main(int argc, char **argv){
     detectorConstruction->SetLengthOfLS(L_LS);
     detectorConstruction->SetLengthOfSpeedBump(L_SpeedBump);
     detectorConstruction->SetAddESR(add_ESR);
+    detectorConstruction->SetAddCalib(add_calib);
     detectorConstruction->SetDistanceOfNearPMT(distance_PMT_near);
     detectorConstruction->SetThicknessOfTank(thickness_tank);
     detectorConstruction->WhetherTurnOnTank(use_tank);
     detectorConstruction->WhetherUseQuartz(use_quartz);
     detectorConstruction->SetRofLS(r_LS);
     runManager->SetUserInitialization(detectorConstruction);
+
+    MyTrackerSD::seed_SD = seed;
     
     // physics list
 //    G4VModularPhysicsList* physicsList = new NeutrinoPhysicsList;

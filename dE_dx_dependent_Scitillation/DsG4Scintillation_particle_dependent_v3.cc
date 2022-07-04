@@ -279,18 +279,17 @@ DsG4Scintillation::PostStepDoIt(const G4Track& aTrack, const G4Step& aStep)
 
     */
     G4MaterialPropertyVector* Ratio_timeconstant = 0 ;
-    cout << "Particle Name:\t"<< aParticleName << endl;
     if (aParticleName == "opticalphoton") {
-      Ratio_timeconstant = aMaterialPropertiesTable->GetProperty("InstantCONSTANT");
+      Ratio_timeconstant = aMaterialPropertiesTable->GetProperty("OpticalCONSTANT");
     }
     else if(aParticleName == "gamma" || aParticleName == "e+" || aParticleName == "e-") {
-      Ratio_timeconstant = aMaterialPropertiesTable->GetProperty("InstantCONSTANT");
+      Ratio_timeconstant = aMaterialPropertiesTable->GetProperty("GammaCONSTANT");
     }
     else if(aParticleName == "alpha") {
-      Ratio_timeconstant = aMaterialPropertiesTable->GetProperty("InstantCONSTANT");
+      Ratio_timeconstant = aMaterialPropertiesTable->GetProperty("AlphaCONSTANT");
     }
     else {
-      Ratio_timeconstant = aMaterialPropertiesTable->GetProperty("InstantCONSTANT");
+      Ratio_timeconstant = aMaterialPropertiesTable->GetProperty("NeutronCONSTANT");
     }
 
   //-----------------------------------------------------//
@@ -530,7 +529,7 @@ DsG4Scintillation::PostStepDoIt(const G4Track& aTrack, const G4Step& aStep)
               ScintillationIntegral =
                     (G4PhysicsOrderedFreeVector*)((*theSlowIntegralTable)(materialIndex));
          }
-        std::cout<<"scnt == "<<scnt <<"  Num =="<<NumVec[scnt]<<" time =="<<Ratio_timeconstant->Energy(scnt)<<std::endl;
+//        std::cout<<"scnt == "<<scnt <<"  Num =="<<NumVec[scnt]<<" time =="<<Ratio_timeconstant->Energy(scnt)<<std::endl;
 
        //  G4int m_Num =G4int(NumTracks * (*Ratio_timeconstant)[scnt]);
          ScintillationTime = Ratio_timeconstant->Energy(scnt);

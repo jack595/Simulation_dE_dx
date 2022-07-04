@@ -49,11 +49,13 @@ public:
       G4double      fEquench;
       G4ThreeVector fPos;
       G4double      fStepLength;
+      G4int         ParentID;
       G4String      fParticleName;
       G4int         fpdgID;
       G4double      time;
       G4int         isCherenkov;
       G4double      fKineticE;
+      int           seed;
 
 };
 

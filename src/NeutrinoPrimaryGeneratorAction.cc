@@ -20,6 +20,7 @@ NeutrinoPrimaryGeneratorAction::NeutrinoPrimaryGeneratorAction()
 NeutrinoPrimaryGeneratorAction::NeutrinoPrimaryGeneratorAction(bool add_source)
 {
     add_radio_source = add_source;
+    m_evtID_gen = -1;
     if (add_source)
         G4cout << "========>  Executing adding source mode !!!!!! <========" << G4endl;
     if (add_radio_source)
@@ -111,6 +112,7 @@ void NeutrinoPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
         Energy_init = generator->GetParticleEnergy();
         v_XYZ = generator->GetParticlePosition();
     }
+    m_evtID_gen ++;
     XYZ[0]=v_XYZ.getX();XYZ[1]=v_XYZ.getY();XYZ[2]=v_XYZ.getZ();
 
 }
@@ -121,6 +123,7 @@ void NeutrinoPrimaryGeneratorAction::CreateTree() {
     tree_generator = new TTree("genInfo", "genInfo");
     tree_generator->Branch("E_init", &Energy_init, "E_init/D");
     tree_generator->Branch("XYZ", &XYZ);
+    tree_generator->Branch("evtID", &m_evtID_gen, "evtID/I");
 }
 
 void  NeutrinoPrimaryGeneratorAction::FillTree()

@@ -40,10 +40,15 @@ G4bool MyTrackerSD::ProcessHits(G4Step *aStep, G4TouchableHistory *)
 //    std::cout<< "I'm in SD volume" <<std::endl;
 //    if(edep==0. && name_SDHitsCollection.Contains("LS")) return false;
 
-    if(edep==0. ) return false;
+//    if(edep==0. && not name_SDHitsCollection.Contains("Si")  )
+//        return false;
+
+    if(edep==0. && not name_SDHitsCollection.Contains("calib")   ) {
+        return false;
+    }
     if (aStep->GetTrack()->GetParticleDefinition()->GetPDGEncoding()==20022 && name_SDHitsCollection.Contains("LS"))
         return false;
-    if (name_SDHitsCollection.Contains("PMT"))
+    if (name_SDHitsCollection.Contains("PMT") and not name_SDHitsCollection.Contains("calib"))
     {
         // TODO: now it only support the single PE.
         // = only accept the optical photon
@@ -102,14 +107,18 @@ G4bool MyTrackerSD::ProcessHits(G4Step *aStep, G4TouchableHistory *)
 
     newHit->SetTrackID(aStep->GetTrack()->GetTrackID());
     newHit->SetChamberNb(aStep->GetPreStepPoint()->GetTouchableHandle()->GetCopyNumber());
-    newHit->SetEdep(edep);
-    newHit->fEquench = EdepToQquench(aStep);
     newHit->SetPos(aStep->GetPostStepPoint()->GetPosition());
-    newHit->SetParticleName(aStep->GetTrack()->GetParticleDefinition()->GetParticleName());
     newHit->SetPDGID(aStep->GetTrack()->GetParticleDefinition()->GetPDGEncoding());
     newHit->time = aStep->GetPreStepPoint()->GetGlobalTime();
+
+    newHit->SetEdep(edep);
+    newHit->fEquench = EdepToQquench(aStep);
+    newHit->SetParticleName(aStep->GetTrack()->GetParticleDefinition()->GetParticleName());
     newHit->fStepLength = aStep->GetStepLength();
     newHit->fKineticE = aStep->GetPreStepPoint()->GetKineticEnergy();
+    newHit->ParentID = aStep->GetTrack()->GetParentID();
+    newHit->seed = seed_SD;
+
 
 //    if (newHit->GetTrackID()>1 && aStep->IsFirstStepInVolume())
 //        std::cout << "Creator Process:\t"<< aStep->GetTrack()->GetCreatorProcess()->GetProcessName()<<"\tPDG:\t"<<newHit->fpdgID << std::endl;

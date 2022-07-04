@@ -29,6 +29,7 @@ class NeutrinoPrimaryGeneratorAction : public G4VUserPrimaryGeneratorAction{
         static TTree* tree_generator;
         static double Energy_init;
         static std::vector<double> XYZ;
+        static int m_evtID_gen;
 
         bool add_radio_source;
 

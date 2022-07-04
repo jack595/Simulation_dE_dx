@@ -20,6 +20,8 @@ public:
     virtual G4bool ProcessHits(G4Step * step, G4TouchableHistory * history);
     virtual void EndOfEvent(G4HCofThisEvent* hitCollection);
 
+    static int seed_SD;
+
 private:
     MyTrackerHitsCollection* fHitsCollection;
     TString name_SDHitsCollection;

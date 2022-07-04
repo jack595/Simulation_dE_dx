@@ -48,10 +48,9 @@ void MyDataExtract::SetBranches()
         v_trees[i]->Branch("evtID",
                             &v_information_to_save[i].evtID,
                             "evtID/I");
-        v_trees[i]->Branch("xyz_center",
-                  v_information_to_save[i].center_Edep,
-                           "center_Edep[3]/D");
-
+//        v_trees[i]->Branch("xyz_center",
+//                  v_information_to_save[i].center_Edep,
+//                           "center_Edep[3]/D");
 
         v_trees[i]->Branch("step_pdgID", &v_information_to_save[i].step_pdgID);
         v_trees[i]->Branch("step_trackID", &v_information_to_save[i].step_trackID);
@@ -59,12 +58,22 @@ void MyDataExtract::SetBranches()
         v_trees[i]->Branch("step_y", &v_information_to_save[i].step_y);
         v_trees[i]->Branch("step_z",&v_information_to_save[i].step_z);
         v_trees[i]->Branch("step_t", &v_information_to_save[i].step_t);
-        v_trees[i]->Branch("step_Edep", &v_information_to_save[i].step_Edep);
-        v_trees[i]->Branch("step_Equench", &v_information_to_save[i].step_Equench);
         v_trees[i]->Branch("step_KineticE", &v_information_to_save[i].step_KineticE);
-        v_trees[i]->Branch("step_dx", &v_information_to_save[i].step_dx);
         v_trees[i]->Branch("step_chamberID", &v_information_to_save[i].step_Chamber_ID);
-        v_trees[i]->Branch("step_isCherenkov", &v_information_to_save[i].step_isCherenkov);
+        v_trees[i]->Branch("step_ParentID", &v_information_to_save[i].step_ParentID);
+
+        if (v_SD_name[i].contains("PMT"))
+        {
+            v_trees[i]->Branch("step_isCherenkov", &v_information_to_save[i].step_isCherenkov);
+            v_trees[i]->Branch("step_seed", &v_information_to_save[i].step_seed);
+        }
+        else
+        {
+            v_trees[i]->Branch("step_dx", &v_information_to_save[i].step_dx);
+            v_trees[i]->Branch("step_Edep", &v_information_to_save[i].step_Edep);
+            v_trees[i]->Branch("step_Equench", &v_information_to_save[i].step_Equench);
+        }
+
     }
 }
 
@@ -83,6 +92,8 @@ void MyDataExtract::ResetVariable() {
         v_information_to_save[i].step_dx.clear();
         v_information_to_save[i].step_Chamber_ID.clear();
         v_information_to_save[i].step_isCherenkov.clear();
+        v_information_to_save[i].step_ParentID.clear();
+        v_information_to_save[i].step_seed.clear();
     }
 }
 
@@ -96,7 +107,8 @@ void MyDataExtract::ResetVariable() {
 
             v_information_to_save[i].evtID=event->GetEventID();
 
-            G4ThreeVector v_position_EdepCenter=GetEdepCenter(fHitsCollection,v_information_to_save[i].Edep_event);
+            G4ThreeVector v_position_EdepCenter={0,0,0};
+//            G4ThreeVector v_position_EdepCenter=GetEdepCenter(fHitsCollection,v_information_to_save[i].Edep_event);
             for(int j=0;j<v_position_EdepCenter.SIZE;j++)
                 v_information_to_save[i].center_Edep[j] = v_position_EdepCenter[j]*100;
 
@@ -115,6 +127,8 @@ void MyDataExtract::ResetVariable() {
                 v_information_to_save[i].step_dx.push_back(hit->fStepLength);
                 v_information_to_save[i].step_Chamber_ID.push_back(hit->GetChamberNb());
                 v_information_to_save[i].step_isCherenkov.push_back(hit->isCherenkov);
+                v_information_to_save[i].step_ParentID.push_back(hit->ParentID);
+                v_information_to_save[i].step_seed.push_back(hit->seed);
             }
 
             }
@@ -147,7 +161,7 @@ void MyDataExtract::JudgeWhetherHit()
     for(int i=0;i<n_hitsCollection;i++)
     {
         G4cout << v_SD_name[i] << " " << v_MytrackerHitsCollection[i]->entries() << G4endl;
-        if (v_SD_name[i].contains("PMT"))
+        if ( v_SD_name[i].contains("calib") or v_SD_name[i].contains("Si"))
         {
             if (v_MytrackerHitsCollection[i]->entries()!=0)
                 v_whether_hit[i] =  true;

@@ -272,28 +272,25 @@ DsG4Scintillation::PostStepDoIt(const G4Track& aTrack, const G4Step& aStep)
     if (!Fast_Intensity && !Slow_Intensity )
         return G4VRestDiscreteProcess::PostStepDoIt(aTrack, aStep);
 
-    //-------------find the type of particle------------------------------//
-    /*
-        Find the particle type and register the scintillation time constant corresponding.
-        We save the yield ratio and time constant in the form of G4PhysicVector. In this kind of G4PhysicVector, we interprete Energy as scintillation time and interprete Value as the yield ratio.
+    ////////////////////////////////////////////////////////////////
+    // Added by luoxj, Initilize Ratio_timeconstant to advoid crash
+    G4double dE_dx;
+    //std::cout<< "create table"<<std::endl;
+    G4MaterialPropertyVector* Ratio_timeconstant = 0;
 
-    */
-    G4MaterialPropertyVector* Ratio_timeconstant = 0 ;
-    cout << "Particle Name:\t"<< aParticleName << endl;
-    if (aParticleName == "opticalphoton") {
-      Ratio_timeconstant = aMaterialPropertiesTable->GetProperty("InstantCONSTANT");
+    if (aParticleName != "opticalphoton")
+    {
+        //std::cout<<"new a table"<<std::endl;
+        Ratio_timeconstant = new G4MaterialPropertyVector(0,0,0) ;
     }
-    else if(aParticleName == "gamma" || aParticleName == "e+" || aParticleName == "e-") {
-      Ratio_timeconstant = aMaterialPropertiesTable->GetProperty("InstantCONSTANT");
-    }
-    else if(aParticleName == "alpha") {
-      Ratio_timeconstant = aMaterialPropertiesTable->GetProperty("InstantCONSTANT");
-    }
-    else {
-      Ratio_timeconstant = aMaterialPropertiesTable->GetProperty("InstantCONSTANT");
-    }
+    G4MaterialPropertyVector* Ratio_timeconstant_N1 = 0 ;
+    G4MaterialPropertyVector* Ratio_timeconstant_N2 = 0 ;
+    G4MaterialPropertyVector* Ratio_timeconstant_N3 = 0 ;
+    G4MaterialPropertyVector* Ratio_timeconstant_tau1 = 0 ;
+    G4MaterialPropertyVector* Ratio_timeconstant_tau2 = 0 ;
+    G4MaterialPropertyVector* Ratio_timeconstant_tau3 = 0 ;
+    /////////////////////////////////////////////////////////////////
 
-  //-----------------------------------------------------//
 
     G4StepPoint* pPreStepPoint  = aStep.GetPreStepPoint();
     G4StepPoint* pPostStepPoint = aStep.GetPostStepPoint();
@@ -305,6 +302,7 @@ DsG4Scintillation::PostStepDoIt(const G4Track& aTrack, const G4Step& aStep)
     //Replace NumPhotons by NumTracks
     G4int NumTracks=0;
     G4double weight=1.0;
+
     if (flagReemission) {   
         if(verboseLevel > 0){   
             G4cout<<"the process name is "<<pname<<"!!"<<G4endl;}
@@ -361,7 +359,7 @@ DsG4Scintillation::PostStepDoIt(const G4Track& aTrack, const G4Step& aStep)
 
         G4double dE = TotalEnergyDeposit;
         G4double dx = aStep.GetStepLength();
-        double dE_dx = dE/dx;
+        dE_dx = dE/dx;
         if(aTrack.GetDefinition() == G4Gamma::Gamma() && dE > 0)
         { 
           G4LossTableManager* manager = G4LossTableManager::Instance();
@@ -427,6 +425,100 @@ DsG4Scintillation::PostStepDoIt(const G4Track& aTrack, const G4Step& aStep)
           G4cout << " Generated " << NumTracks << " scint photons. mean(scint photons) = " << MeanNumberOfTracks << G4endl;
         }
     }
+
+    //////////////////////////////////////////////////////////////////////////////////
+    // Added by luoxj
+    // Set timing constants which are related to dE/dx
+
+    if (aParticleName == "opticalphoton") {
+        // std::cout<< "Reading Optical Table......."<< std::endl;
+        Ratio_timeconstant = aMaterialPropertiesTable->GetProperty("OpticalCONSTANT");
+    }
+    else
+    {
+
+        // std::cout<< "Reading Time Constant Table......."<< std::endl;
+        Ratio_timeconstant_N1 = aMaterialPropertiesTable->GetProperty("N1CONSTANT");
+        Ratio_timeconstant_N2 = aMaterialPropertiesTable->GetProperty("N2CONSTANT");
+        Ratio_timeconstant_N3 = aMaterialPropertiesTable->GetProperty("N3CONSTANT");
+
+        Ratio_timeconstant_tau1 = aMaterialPropertiesTable->GetProperty("tau1CONSTANT");
+        Ratio_timeconstant_tau2 = aMaterialPropertiesTable->GetProperty("tau2CONSTANT");
+        Ratio_timeconstant_tau3 = aMaterialPropertiesTable->GetProperty("tau3CONSTANT");
+        //std::cout<<"over  huyuxciang!!!!"<<std::endl;
+
+        Ratio_timeconstant_N1->SetSpline(false);
+        Ratio_timeconstant_N2->SetSpline(false);
+        Ratio_timeconstant_N3->SetSpline(false);
+        Ratio_timeconstant_tau1->SetSpline(false);
+        Ratio_timeconstant_tau2->SetSpline(false);
+        Ratio_timeconstant_tau3->SetSpline(false);
+
+        // std::cout << "Try to insert values into time constant table!!!" << std::endl;
+
+        Ratio_timeconstant->InsertValues(Ratio_timeconstant_tau1->Value(dE_dx), Ratio_timeconstant_N1->Value(dE_dx));
+        Ratio_timeconstant->InsertValues(Ratio_timeconstant_tau2->Value(dE_dx), Ratio_timeconstant_N2->Value(dE_dx));
+        Ratio_timeconstant->InsertValues(Ratio_timeconstant_tau3->Value(dE_dx), Ratio_timeconstant_N3->Value(dE_dx));
+
+    }
+
+    // Print time constant
+    bool print_Ratio_timeconstant = false;
+    if (print_Ratio_timeconstant)
+    {
+        if (aParticleName == "opticalphoton") {
+            for(int i=0;i<Ratio_timeconstant->GetVectorLength();i++)
+            {
+                std::cout<< i <<" 1nd comloum(optical):\t" << Ratio_timeconstant->Energy(i) << std::endl;
+                std::cout<< i <<" 2nd comloum(optical):\t" << (*Ratio_timeconstant)[i] << std::endl;
+            }
+        }
+        else
+        {
+            for(int i=0;i<Ratio_timeconstant_N1->GetVectorLength();i++)
+            {
+                std::cout<< i <<" 1nd comloum(N1):\t" << Ratio_timeconstant_N1->Energy(i) << std::endl;
+                std::cout<< i <<" 2nd comloum(N1):\t" << (*Ratio_timeconstant_N1)[i] << std::endl;
+                std::cout<< i <<" 1nd comloum(N2):\t" << Ratio_timeconstant_N2->Energy(i) << std::endl;
+                std::cout<< i <<" 2nd comloum(N2):\t" << (*Ratio_timeconstant_N2)[i] << std::endl;
+                std::cout<< i <<" 1nd comloum(N3):\t" << Ratio_timeconstant_N3->Energy(i) << std::endl;
+                std::cout<< i <<" 2nd comloum(N3):\t" << (*Ratio_timeconstant_N3)[i] << std::endl;
+
+
+                std::cout<< i <<" 1nd comloum(tau1):\t" << Ratio_timeconstant_tau1->Energy(i) << std::endl;
+                std::cout<< i <<" 2nd comloum(tau1):\t" << (*Ratio_timeconstant_tau1)[i] << std::endl;
+                std::cout<< i <<" 1nd comloum(tau2):\t" << Ratio_timeconstant_tau2->Energy(i) << std::endl;
+                std::cout<< i <<" 2nd comloum(tau2):\t" << (*Ratio_timeconstant_tau2)[i] << std::endl;
+                std::cout<< i <<" 1nd comloum(tau3):\t" << Ratio_timeconstant_tau3->Energy(i) << std::endl;
+                std::cout<< i <<" 2nd comloum(tau3):\t" << (*Ratio_timeconstant_tau3)[i] << std::endl;
+            }
+
+            for(double fn=0.;fn<1000.;fn++)
+            {
+                std::cout<<"Try to spline:\t"<< fn<<"\t"
+                << Ratio_timeconstant_N1->Value(fn*0.1)<<"\t"
+                << Ratio_timeconstant_N2->Value(fn*0.1)<<"\t"
+                << Ratio_timeconstant_N3->Value(fn*0.1)<<"\t"
+                << Ratio_timeconstant_tau1->Value(fn*0.1) << "\t"
+                << Ratio_timeconstant_tau2->Value(fn*0.1) << "\t"
+                << Ratio_timeconstant_tau3->Value(fn*0.1) << "\t"
+                << std::endl;
+            }
+
+            std::cout<< "particle Name:\t"<< aParticleName<<"\ndE/dx:\t"<<dE_dx<<std::endl;
+            for(int i=0;i<Ratio_timeconstant->GetVectorLength();i++)
+            {
+                std::cout<< i <<" 1nd comloum(spline):\t" << Ratio_timeconstant->Energy(i) << std::endl;
+                std::cout<< i <<" 2nd comloum(spline):\t" << (*Ratio_timeconstant)[i] << std::endl;
+            }
+        }
+    }
+
+    ////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+
 
 
     weight*=fPhotonWeight;
@@ -530,7 +622,7 @@ DsG4Scintillation::PostStepDoIt(const G4Track& aTrack, const G4Step& aStep)
               ScintillationIntegral =
                     (G4PhysicsOrderedFreeVector*)((*theSlowIntegralTable)(materialIndex));
          }
-        std::cout<<"scnt == "<<scnt <<"  Num =="<<NumVec[scnt]<<" time =="<<Ratio_timeconstant->Energy(scnt)<<std::endl;
+       // std::cout<<"scnt == "<<scnt <<"  Num =="<<NumVec[scnt]<<" time =="<<Ratio_timeconstant->Energy(scnt)<<std::endl;
 
        //  G4int m_Num =G4int(NumTracks * (*Ratio_timeconstant)[scnt]);
          ScintillationTime = Ratio_timeconstant->Energy(scnt);
@@ -714,6 +806,11 @@ DsG4Scintillation::PostStepDoIt(const G4Track& aTrack, const G4Step& aStep)
    }         // scntloop
 
 
+    if (aParticleName != "opticalphoton")
+    {
+        //std::cout<<"delete a table"<<std::endl;
+        delete Ratio_timeconstant ;
+    }
 
     if (verboseLevel > 0) {
         G4cout << "\n Exiting from G4Scintillation::DoIt -- NumberOfSecondaries = " 

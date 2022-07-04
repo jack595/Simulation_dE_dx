@@ -133,6 +133,39 @@
            0.01
   };
 
+  double ESRDiffuselobe[31] = {
+          0.8,
+          0.8,
+          0.8,
+          0.8,
+          0.8,
+          0.8,
+          0.8,
+          0.8,
+          0.8,
+          0.8,
+          0.8,
+          0.8,
+          0.8,
+          0.8,
+          0.8,
+          0.8,
+          0.8,
+          0.8,
+          0.8,
+          0.8,
+          0.8,
+          0.8,
+          0.8,
+          0.8,
+          0.8,
+          0.8,
+          0.8,
+          0.8,
+          0.8,
+          0.8,
+          0.8
+  };
   double ESRSpecularlobe[31] = {
            1.,
            1.,
@@ -252,6 +285,34 @@ double GdLSResolutionScale[2] = {1.0, 1.0};
   double GdLSAlphaSlowTimeConstant[2] = {35.0*ns, 35.0*ns};
   double GdLSAlphaYieldRatio[2] = {0.65, 0.65};
 
+  // ----------Added by Luoxj ------------------
+  // dE/dx dependent time constant
+  double N1CONSTANT_Energy[3] = {0.6747912*MeV/mm, 29.574*MeV/mm, 122.773*MeV/mm};
+  double N1CONSTANT_Value[3] = {0.799, 0.65, 0.65};
+  double N2CONSTANT_Energy[3] = {0.6747912*MeV/mm,29.574236*MeV/mm,122.773224*MeV/mm};
+  double N2CONSTANT_Value[3] = {0.171,0.231,0.228};
+  double N3CONSTANT_Energy[3] = {0.6747912*MeV/mm,29.574236*MeV/mm,122.773224*MeV/mm};
+  double N3CONSTANT_Value[3] = {0.03,0.119,0.122};
+
+  double tau1CONSTANT_Energy[3] = {0.6747912*MeV/mm,29.574236*MeV/mm,122.773224*MeV/mm};
+  double tau1CONSTANT_Value[3] = {4.93,4.93,4.93};
+  double tau2CONSTANT_Energy[3]  = {0.6747912*MeV/mm,29.574236*MeV/mm,122.773224*MeV/mm};
+  double tau2CONSTANT_Value[3] = {20.6,34,35};
+  double tau3CONSTANT_Energy[3] = {0.6747912*MeV/mm,29.574236*MeV/mm,122.773224*MeV/mm};
+  double tau3CONSTANT_Value[3] = {190,220,220};
+
+  // Lastest version
+  double OpticalCONSTANT_Energy[2] = {1.5*ns, 1.5*ns};
+  double OpticalCONSTANT_Value[2] = {1.0, 1.0};
+
+  // Instant emission
+  double instantComponent = 1.e-20;
+  double InstantEmission_Energy[2] = {instantComponent*ns, instantComponent*ns};
+  double InstantEmission_Value[2] = {1.0, 1.0};
+
+  // --------------------------------------------
+
+
   // neutron and proton
   //double GdLSNeutronFastTimeConstant[2] = {1.0*ns, 1.0*ns};
   double GdLSNeutronFastTimeConstant[2] = {4.93*ns, 4.93*ns};
@@ -265,13 +326,19 @@ double GdLSResolutionScale[2] = {1.0, 1.0};
   //add time constant
   double OpticalYieldRatio[1] = {1.0 };
   double OpticalTimeConstant[1] = {1.50*ns };
-  double GammaYieldRatio[4] = {0.707, 0.205, 0.06, 0.028};
-  double GammaTimeConstant[4] = { 4.6*ns , 15.1*ns, 76.1*ns, 397*ns};
-  double AlphaYieldRatio[4] = {0.4982, 0.2739, 0.1467,0.0812};
-  double AlphaTimeConstant[4] = { 4.345*ns ,17.64*ns, 89.045*ns, 544.48*ns};
-  double NeutronYieldRatio[4] = { 0.614, 0.232, 0.09, 0.064};
-  double NeutronTimeConstant[4] = { 4.5*ns, 15.7*ns ,76.2*ns, 367*ns};
+//  double GammaYieldRatio[4] = {0.707, 0.205, 0.06, 0.028};
+//  double GammaTimeConstant[4] = { 4.6*ns , 15.1*ns, 76.1*ns, 397*ns};
+//  double AlphaYieldRatio[4] = {0.4982, 0.2739, 0.1467,0.0812};
+//  double AlphaTimeConstant[4] = { 4.345*ns ,17.64*ns, 89.045*ns, 544.48*ns};
+//  double NeutronYieldRatio[4] = { 0.614, 0.232, 0.09, 0.064};
+//  double NeutronTimeConstant[4] = { 4.5*ns, 15.7*ns ,76.2*ns, 367*ns};
 
+  double GammaYieldRatio[3] = {0.799, 0.171, 0.03,};
+  double GammaTimeConstant[3] = { 4.93*ns , 20.6*ns, 190*ns};
+  double AlphaYieldRatio[3] ={ 0.65, 0.228, 0.122};
+  double AlphaTimeConstant[3] = { 4.93*ns, 35*ns ,220*ns};
+  double NeutronYieldRatio[3] = {0.65, 0.231, 0.119};
+  double NeutronTimeConstant[3] =  { 4.93*ns ,34*ns, 220*ns};
 
 // New Model for LAB ABSLength
 double GdLABABSEnergy[428] = {
@@ -4962,6 +5029,85 @@ double AcrylicAbsLength[25] = {
   double TyvekEnergy[4] = {1.55*eV, 6.20*eV, 10.33*eV, 15.5*eV};
   double TyvekABSLength[4] = {10e3*mm, 10e3*mm, 10e3*mm, 10e3*mm};
 
+  double TyvekEnergyForReflectivity[36] = {
+          1.55      *eV,
+          2.034     *eV,
+          2.068     *eV,
+          2.103     *eV,
+          2.139     *eV,
+          2.177     *eV,
+          2.216     *eV,
+          2.256     *eV,
+          2.298     *eV,
+          2.341     *eV,
+          2.386     *eV,
+          2.433     *eV,
+          2.481     *eV,
+          2.532     *eV,
+          2.585     *eV,
+          2.64      *eV,
+          2.697     *eV,
+          2.757     *eV,
+          2.82      *eV,
+          2.885     *eV,
+          2.954     *eV,
+          3.026     *eV,
+          3.102     *eV,
+          3.181     *eV,
+          3.265     *eV,
+          3.353     *eV,
+          3.446     *eV,
+          3.545     *eV,
+          3.649     *eV,
+          3.76      *eV,
+          3.877     *eV,
+          4.002     *eV,
+          4.136     *eV,
+          6.2       *eV,
+          10.33     *eV,
+          15.5      *eV,
+  };
+
+  double TyvekReflectivity[36] = {
+          0.91,
+          0.91,
+          0.91,
+          0.91,
+          0.91,
+          0.91,
+          0.91,
+          0.91,
+          0.91,
+          0.91,
+          0.91,
+          0.91,
+          0.91,
+          0.912,
+          0.913,
+          0.915,
+          0.918,
+          0.92,
+          0.92,
+          0.925,
+          0.925,
+          0.92,
+          0.92,
+          0.91,
+          0.89,
+          0.88,
+          0.87,
+          0.86,
+          0.84,
+          0.82,
+          0.8 ,
+          0.76,
+          0.73,
+          0.53,
+          0.53,
+          0.53,
+  };
+
+
   double TeflonEnergy[4] = {1.55*eV, 6.20*eV, 10.33*eV, 15.5*eV};
   double TeflonReflectivity[4] = {0.8, 0.8, 0.8, 0.8};
   double TeflonSpecularlobe[4] = {0., 0., 0., 0.};
@@ -6206,6 +6352,83 @@ double fPhCEFFICIENCY_HighQEMCP20inch_one[43] = {
 1.0,
 1.0
 };
+
+// R7600U QE
+double fPP_energy_QE_R7600U[35] =
+          {
+        1.44748006676891  *eV,
+        1.45642080404452  *eV,
+        1.4632132762312637*eV,
+        1.4723532162180213*eV,
+        1.4792826572163997*eV,
+        1.488615365846751 *eV,
+        1.5027976749454033*eV,
+        1.5172561871899748*eV,
+        1.5270757816166447*eV,
+        1.5420040709666063*eV,
+        1.5572235629787123*eV,
+        1.5727392411123233*eV,
+        1.5885782966713626*eV,
+        1.6101697071950005*eV,
+        1.6379750415893604*eV,
+        1.660931727141913 *eV,
+        1.690525623073383 *eV,
+        1.7274371854215067*eV,
+        1.7791980961357698*eV,
+        1.8341518276545148*eV,
+        1.8925822319222718*eV,
+        1.9629501104539095*eV,
+        2.047476163936981 *eV,
+        2.1396360880878493*eV,
+        2.235214110242814 *eV,
+        2.3455047849189246*eV,
+        2.493106492899987 *eV,
+        2.6383747823300245*eV,
+        2.80159652978221  *eV,
+        2.9863322494930427*eV,
+        3.218716320608959 *eV,
+        3.5030944007546334*eV,
+        3.8117691028973706*eV,
+        4.198487287562826 *eV,
+        4.538376116627369  *eV,
+        };
+  double fPP_QE_R7600U[35] = {
+          0.00011368686912342797,
+          0.0001586927561872007,
+          0.00021590457169124548,
+          0.00030526686436940125,
+          0.000394548392742065,
+          0.0005367907382360723,
+          0.0007303142072217293,
+          0.0010064344990663328,
+          0.0013692736497681142,
+          0.0018629233493969476,
+          0.002502238435750439,
+          0.0032758222942595905,
+          0.004456819746355836,
+          0.0060635896783274275,
+          0.008249631324484658,
+          0.01093949349783117,
+          0.014506408017762658,
+          0.018991161719551026,
+          0.024545514785012244,
+          0.03131999809853483,
+          0.03748143035865177,
+          0.04782618485883798,
+          0.05507405769569692,
+          0.06675941691144277,
+          0.07989267521275802,
+          0.09684393407453135,
+          0.11890740838088303,
+          0.14048576217304581,
+          0.16177583460146103,
+          0.1839178813566959,
+          0.19863242251507265,
+          0.20379437867685632,
+          0.20379437867685674,
+          0.19863242251507265,
+          0.15971386457872036
+  };
 
 // Use update average MCP PMT QE by miaoyu@ihep.ac.cn
 double fPP_PhCQE_AverageMCP20inch[43] = {

@@ -53,7 +53,7 @@ void MyVDataExtract::DataFileInitiate()
     {
         v_trees.push_back(new TTree(v_SD_name[i],v_SD_name[i]));
             }
-    file_save_processed_data=new TFile(name_processed_file,"recreate");
+    file_save_processed_data=TFile::Open(name_processed_file,"recreate");
 }
 
 void MyVDataExtract::GetHCE(G4HCofThisEvent *HCE)

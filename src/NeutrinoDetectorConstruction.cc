@@ -102,7 +102,7 @@ void NeutrinoDetectorConstruction::ConstructDetector()
 
 
     //-------------------- Chamber ------------------------
-    G4double ChamberLength_x = 7. * cm, ChamberLength_y = 7. * cm, ChamberLength_z = 220. * cm;
+    G4double ChamberLength_x = 220. * cm, ChamberLength_y = 220. * cm, ChamberLength_z = 50. * cm;
     auto *Chamber = new G4Box("Chamber", 0.5 * ChamberLength_x, 0.5 * ChamberLength_y, 0.5 * ChamberLength_z);
     auto *Chamber_log = new G4LogicalVolume(Chamber, vacuum, "Chamber_log", 0, 0, 0);
     G4ThreeVector Chamberpos(0. * mm, 0. * mm, 0. * mm);
@@ -118,11 +118,20 @@ void NeutrinoDetectorConstruction::ConstructDetector()
             0);              // copy number
 
     // Set PMT and Si Oil
-//    G4double R_PMT = 38.1 * mm; // 3 inches
-    G4double R_PMT = 25.4 * mm; // 2 inches
+    G4double R_PMT = 38.1 * mm; // 3 inches
+    G4double R_PMT_2inches = 25.4 * mm; // 2 inches
+    G4double R_PMT_1inches = 12.7 * mm; // 1 inches
     G4double PMT_thickness = 1 * cm;
+    G4double PMT_calib_thickness = 1*mm;
+    G4double distance_calib_PMT_to_LS = 1 * cm;
+
     G4double PMT_thickness_base = 0.8 * cm;
-    G4double distance_PMT_to_LS = m_distance_PMT_near * cm;
+    G4double PMT_thickness_R7600U = 0.1 * cm;
+    G4double PMT_thickness_base_R7600U = 0.08 * cm;
+    G4double distance_far_PMT_to_LS = 50 * cm;
+
+
+    G4double l_PMT_R7600 = 36*mm;
 
     G4double Al_thickness = 0.1 * mm;
     G4double Acrylic_thickness = m_thickness_tank * mm;
@@ -135,6 +144,8 @@ void NeutrinoDetectorConstruction::ConstructDetector()
 
     // Set ESR film
     G4double ESR_thickness = 0.0508 * mm;
+//    G4double ESR_thickness = 3 * mm;
+
     G4double ESR_R;
     if (use_tank)
         ESR_R = Acrylic_r;
@@ -269,21 +280,91 @@ void NeutrinoDetectorConstruction::ConstructDetector()
                                             Chamber_log,      // its mother  volume
                                             false,           // no boolean operations
                                             1);
+    }
 
-//        ESR_phys_upper = new G4PVPlacement(0,
-//                                      G4ThreeVector(0, ESR_y, 0),    // at (x,y,z)
-//                                      ESR_log,   // its logical volume
-//                                      "ESR_phys_upper",    // its name
-//                                      Chamber_log,      // its mother  volume
-//                                      false,           // no boolean operations
-//                                      0);
-//        ESR_phys_bottom = new G4PVPlacement(0,
-//                                     G4ThreeVector(0, -ESR_y, 0),    // at (x,y,z)
-//                                     ESR_log,   // its logical volume
-//                                     "ESR_phys_bottom",    // its name
-//                                     Chamber_log,      // its mother  volume
-//                                     false,           // no boolean operations
-//                                     1);
+    G4VPhysicalVolume *ESR_phys_left_new_detector;
+    G4VPhysicalVolume *ESR_phys_right_new_detector;
+    if (add_new_detector)
+    {
+        double r_aperture = 2 * mm;
+        double r_ESR_new_detector;
+        double z_ESR_new_detector;
+        double length_ESR_new_detector;
+
+        if (add_ESR_for_new_detector)
+        {
+
+            G4double x_ESR_new_detector;
+            if (use_tank)
+            {
+                x_ESR_new_detector = Acrylic_r + ESR_thickness*0.5;
+                r_ESR_new_detector = (Acrylic_r-r_aperture)/2.;
+                z_ESR_new_detector = (Acrylic_r+r_aperture)/2.;
+                length_ESR_new_detector = Acrylic_Length;
+            }
+            else
+            {
+                x_ESR_new_detector =  GdLS_r + (ESR_thickness)*0.5;
+                r_ESR_new_detector =  (GdLS_r-r_aperture)/2.;
+                z_ESR_new_detector = (GdLS_r+r_aperture)/2.;
+                length_ESR_new_detector = GdLS_Length;
+            }
+
+            G4cout << r_ESR_new_detector << "\t"<< r_aperture<< G4endl;
+            auto* ESR_solid_new_detector = new G4Box("ESR_solid_new_detector",
+                                                     0.5*ESR_thickness,
+                                                     0.5*length_ESR_new_detector,
+                                                     r_ESR_new_detector);
+            auto* ESR_log_new_detector = new G4LogicalVolume(ESR_solid_new_detector,
+                                                             Acrylic,
+                                                             "ESR_log",
+                                                             0,
+                                                             0,
+                                                             0);
+
+            ESR_phys_left_new_detector = new G4PVPlacement(0,
+                                               G4ThreeVector( x_ESR_new_detector,0, z_ESR_new_detector),    // at (x,y,z)
+                                               ESR_log_new_detector,   // its logical volume
+                                               "ESR_phys_upper",    // its name
+                                               Chamber_log,      // its mother  volume
+                                               false,           // no boolean operations
+                                               0);
+            ESR_phys_right_new_detector = new G4PVPlacement(0,
+                                                G4ThreeVector(x_ESR_new_detector,0,-z_ESR_new_detector ),    // at (x,y,z)
+                                                ESR_log_new_detector,   // its logical volume
+                                                "ESR_phys_bottom",    // its name
+                                                Chamber_log,      // its mother  volume
+                                                false,           // no boolean operations
+                                                1);
+
+        }
+
+        double R_Si_detector = 2.5 * mm;
+        double thickness_Si_detector = 5 * mm;
+        double distance_Si_detector = 5 * cm;
+        double x_Si_detector;
+        if (use_tank)
+            x_Si_detector = Acrylic_r+distance_Si_detector;
+        else
+            x_Si_detector = GdLS_r + distance_Si_detector;
+
+        auto solid_Si_detector = new G4Box("solid_Si_detector",
+                                            0.5*thickness_Si_detector,
+                                            R_Si_detector,
+                                            R_Si_detector);
+
+        auto log_Si_detector = new G4LogicalVolume(solid_Si_detector,
+                                                        Acrylic,
+                                                        "log_Si_detector");
+        auto phys_Si_detector = new G4PVPlacement(0,
+                                                        G4ThreeVector(x_Si_detector,0,0 ),    // at (x,y,z)
+                                                        log_Si_detector,   // its logical volume
+                                                        "phys_Si_detector",    // its name
+                                                        Chamber_log,      // its mother  volume
+                                                        false,           // no boolean operations
+                                                        0);
+
+
     }
 
     //-------------------- Speed Bump---------------------------
@@ -377,17 +458,133 @@ void NeutrinoDetectorConstruction::ConstructDetector()
 
     auto* PMT_rotate = new G4RotationMatrix();
     PMT_rotate->rotateY(180*deg);
-    auto* PMT_phys_far = new G4PVPlacement(PMT_rotate,
+    auto* PMT_phys_near2 = new G4PVPlacement(PMT_rotate,
                       G4ThreeVector(0, 0,  0.5 *
-                                          (Acrylic_r*2 + 2 * distance_PMT_to_LS +
-                                           PMT_thickness)),    // at (x,y,z)
+                                          (Acrylic_r*2 +2 * distance_PMT_near+ PMT_thickness)),    // at (x,y,z)
                       PMT_log,   // its logical volume
-                      "PMT_phys_far",    // its name
+                      "PMT_phys_near2",    // its name
                       Chamber_log,      // its mother  volume
                       false,           // no boolean operations
                       1);
 
+//    auto* PMT_rotate_far = new G4RotationMatrix();
+//    PMT_rotate_far->rotateY(-90*deg);
+//    auto* PMT_phys_far = new G4PVPlacement(PMT_rotate_far,
+//                                           G4ThreeVector(-0.5 *(Acrylic_r*2 + 2 * distance_far_PMT_to_LS +PMT_thickness),
+//                                                                 0,
+//                                                                 0),    // at (x,y,z)
+//                                           PMT_log,   // its logical volume
+//                                           "PMT_phys_far",    // its name
+//                                           Chamber_log,      // its mother  volume
+//                                           false,           // no boolean operations
+//                                           2);
 
+
+//     -------------- R7600U PMT ---------------------
+    // Define Surface
+    auto* PMTRefOpSurface2 = new G4OpticalSurface("PMTRefOpSurface2");
+    PMTRefOpSurface2->SetType(dielectric_metal);
+    PMTRefOpSurface2->SetMaterialPropertiesTable(Photocathode_mat_R7600U->GetMaterialPropertiesTable());
+
+    // Define Geometry
+    auto *PMT_R7600 = new G4Box("PMT_R7600",
+                           0.5* l_PMT_R7600,
+                           0.5* l_PMT_R7600,
+                           0.5* PMT_thickness_R7600U
+                           );
+
+    auto* PMT_base_R7600 = new G4Box("PMT_base_R7600",
+                                     0.5* l_PMT_R7600,
+                                     0.5* l_PMT_R7600,
+                                     0.5* PMT_thickness_base_R7600U
+                                     );
+
+    auto *PMT_log_R7600 = new G4LogicalVolume(PMT_R7600,
+                                            pyrex,
+                                            "PMT_log_R7600",
+                                            0,
+                                            0,
+                                            0);
+
+    auto *PMT_base_log_R7600 = new G4LogicalVolume(PMT_base_R7600,
+                                                   pyrex,
+                                                   "PMT_base_log_R7600",
+                                                   0,
+                                                   0,
+                                                   0);
+
+    auto* PMT_phys_R7600 = new G4PVPlacement(0,
+                                       G4ThreeVector(0, 0, -0.5*(PMT_thickness_R7600U-PMT_thickness_base_R7600U)),
+                                       PMT_base_log_R7600,
+                                       "PMT_phys_R7600",
+                                       PMT_log_R7600,
+                                       false,
+                                       0);
+    int n_PMT_far = 12;
+    G4double deltaTheta_PMT = 180./n_PMT_far *deg;
+
+    for (int j=0;j<n_PMT_far+1;j++)
+    {
+        double R = -0.5 *(Acrylic_r*2 + 2 * distance_far_PMT_to_LS +
+                         PMT_thickness_R7600U);
+        auto* PMT_rotate_far = new G4RotationMatrix();
+        PMT_rotate_far->rotateY(-90*deg).rotateX(deltaTheta_PMT*j);
+        auto* PMT_phys_R7600_far = new G4PVPlacement(PMT_rotate_far,
+                                            G4ThreeVector(R*TMath::Cos(deltaTheta_PMT*j),
+                                                          R*TMath::Sin(deltaTheta_PMT*j),
+                                                          0),    // at (x,y,z)
+                                            PMT_log_R7600,   // its logical volume
+                                            "PMT_phys_R7600_far",    // its name
+                                            Chamber_log,      // its mother  volume
+                                            false,           // no boolean operations
+                                            j);
+        new G4LogicalBorderSurface("PMTOpSurface2", PMT_phys_R7600_far, PMT_phys_R7600, PMTRefOpSurface2);
+        new G4LogicalBorderSurface("PMTOpSurface2", PMT_phys_R7600, PMT_phys_R7600_far, PMTRefOpSurface2);
+    }
+
+    if (m_add_distance2PE_calib)
+    {
+        // only use one direction to place calib volume
+        G4double v_R_PMT[2] = { R_PMT_1inches, R_PMT};
+        for (int j=0;j<2;j++) {
+            const G4String name_PMT = "PMT_"+v_name_PMT_calib[j]+"_calib_distance2PE";
+            auto *PMT_3inches_calib_distance2PE = new G4Tubs(name_PMT,
+                                                             0. * mm,
+                                                             v_R_PMT[j],
+                                                             0.5 * PMT_calib_thickness,
+                                                             0. * deg,
+                                                             360. * deg);
+            auto *PMT_3inches_calib_distance2PE_log = new G4LogicalVolume(PMT_3inches_calib_distance2PE,
+                                                                          vacuum,
+                                                                          name_PMT+"_log",
+                                                                          0,
+                                                                          0,
+                                                                          0);
+            auto *PMT_rotate_calib = new G4RotationMatrix();
+            PMT_rotate_calib->rotateY(-90 * deg);
+            double scaled_distance;
+            int n_calib_near = 20;
+            for (int i = 1; i < n_calib_near + 3; i++) {
+                if (i <= n_calib_near)
+                    scaled_distance = distance_calib_PMT_to_LS * i;
+                else
+                    scaled_distance = (i - n_calib_near) * distance_calib_PMT_to_LS * 10 +
+                                        (distance_calib_PMT_to_LS * n_calib_near);
+                auto *PMT_3inches_calib_distance2PE_phys = new G4PVPlacement(PMT_rotate_calib,
+                                                                             G4ThreeVector(0.5 * (Acrylic_r * 2 +
+                                                                                                  2 * scaled_distance +
+                                                                                                  PMT_calib_thickness)+j*PMT_calib_thickness,
+                                                                                           0, 0),    // at (x,y,z)
+                                                                             PMT_3inches_calib_distance2PE_log,   // its logical volume
+                                                                             name_PMT+"_phys",    // its name
+                                                                             Chamber_log,      // its mother  volume
+                                                                             false,           // no boolean operations
+                                                                             i);
+
+            }
+        }
+
+    }
 
     if (add_periphery_detectors)
     {
@@ -433,7 +630,7 @@ void NeutrinoDetectorConstruction::ConstructDetector()
     PMT_visatt->SetForceWireframe(true);
     PMT_visatt->SetForceAuxEdgeVisible(true);
     PMT_log->SetVisAttributes(PMT_visatt);
-//    PMT_log_near->SetVisAttributes(PMT_visatt);
+    PMT_log_R7600->SetVisAttributes(PMT_visatt);
 
 //------------------------------ SkinSurface -----------------------------------
 //        new G4LogicalSkinSurface("RefOpSurface", Alfilm_log, MirrorSurface);
@@ -442,29 +639,60 @@ void NeutrinoDetectorConstruction::ConstructDetector()
     PMTRefOpSurface1->SetMaterialPropertiesTable(Photocathode_mat_Ham3inch->GetMaterialPropertiesTable());
     new G4LogicalBorderSurface("PMTOpSurface", PMT_phys_near, PMT_phys, PMTRefOpSurface1);
     new G4LogicalBorderSurface("PMTOpSurface", PMT_phys, PMT_phys_near, PMTRefOpSurface1);
-    new G4LogicalBorderSurface("PMTOpSurface", PMT_phys_far, PMT_phys, PMTRefOpSurface1);
-    new G4LogicalBorderSurface("PMTOpSurface", PMT_phys, PMT_phys_far, PMTRefOpSurface1);
+    new G4LogicalBorderSurface("PMTOpSurface", PMT_phys_near2, PMT_phys, PMTRefOpSurface1);
+    new G4LogicalBorderSurface("PMTOpSurface", PMT_phys, PMT_phys_near2, PMTRefOpSurface1);
+//    new G4LogicalBorderSurface("PMTOpSurface", PMT_phys_far, PMT_phys, PMTRefOpSurface1);
+//    new G4LogicalBorderSurface("PMTOpSurface", PMT_phys, PMT_phys_far, PMTRefOpSurface1);
+
+
 //    new G4LogicalSkinSurface("PMTOpSurface", PMT_base_log, PMTRefOpSurface1);
 
 //----------------------------- ESRSurface ------------------------------------
+    auto* ESRRefOpSurface = new G4OpticalSurface("ESRRefOpSurface");
+    ESRRefOpSurface->SetModel(unified);
+    ESRRefOpSurface->SetType(dielectric_metal);
+    ESRRefOpSurface->SetFinish(polished);
+
+    ESRRefOpSurface->SetMaterialPropertiesTable(ESR->GetMaterialPropertiesTable());
+
+    auto* TyvekOpSurface = new G4OpticalSurface("TyvekOpSurface");
+    TyvekOpSurface->SetModel(unified);
+    TyvekOpSurface->SetType(dielectric_metal);
+    TyvekOpSurface->SetFinish(ground);
+    TyvekOpSurface->SetSigmaAlpha(0.2);
+    TyvekOpSurface->SetMaterialPropertiesTable(Tyvek->GetMaterialPropertiesTable());
+
     if (m_add_ESR)
     {
-        auto* ESRRefOpSurface = new G4OpticalSurface("ESRRefOpSurface");
-        ESRRefOpSurface->SetType(dielectric_metal);
-        ESRRefOpSurface->SetModel(unified);
-        ESRRefOpSurface->SetType(dielectric_metal);
-        ESRRefOpSurface->SetFinish(polished);
-        ESRRefOpSurface->SetMaterialPropertiesTable(ESR->GetMaterialPropertiesTable());
+        auto reflector = ESRRefOpSurface;
+        if (m_use_diffuse_reflection)
+            reflector = TyvekOpSurface;
+
         if (use_tank)
         {
-            new G4LogicalBorderSurface("ESROpSurface", Tank_phys, ESR_phys_bottom, ESRRefOpSurface);
-            new G4LogicalBorderSurface("ESROpSurface",  Tank_phys, ESR_phys_upper, ESRRefOpSurface);
+            new G4LogicalBorderSurface("ESROpSurface", Tank_phys, ESR_phys_bottom, reflector);
+            new G4LogicalBorderSurface("ESROpSurface",  Tank_phys, ESR_phys_upper, reflector);
         }
         else
         {
-            new G4LogicalBorderSurface("ESROpSurface_bottom", ESR_phys_bottom, GdLS_phys, ESRRefOpSurface);
-            new G4LogicalBorderSurface("ESROpSurface_upper", ESR_phys_upper,  GdLS_phys, ESRRefOpSurface);
+            new G4LogicalBorderSurface("ESROpSurface_bottom", GdLS_phys,ESR_phys_bottom,  reflector);
+            new G4LogicalBorderSurface("ESROpSurface_upper",   GdLS_phys, ESR_phys_upper, reflector);
         }
+    }
+
+    if (add_new_detector & add_ESR_for_new_detector)
+    {
+        if (use_tank)
+        {
+            new G4LogicalBorderSurface("ESROpSurface", Tank_phys, ESR_phys_right_new_detector, ESRRefOpSurface);
+            new G4LogicalBorderSurface("ESROpSurface",  Tank_phys, ESR_phys_left_new_detector, ESRRefOpSurface);
+        }
+        else
+        {
+            new G4LogicalBorderSurface("ESROpSurface_bottom", GdLS_phys,ESR_phys_left_new_detector, ESRRefOpSurface);
+            new G4LogicalBorderSurface("ESROpSurface_upper",   GdLS_phys,ESR_phys_right_new_detector, ESRRefOpSurface);
+        }
+
     }
 
 
@@ -623,11 +851,11 @@ void NeutrinoDetectorConstruction::ConstructMaterials()
     G4MaterialPropertiesTable* VacuumMPT = new G4MaterialPropertiesTable();
     G4double VacuumPP[2] =
     {
-        1.55*eV, 6.20*eV
+        1.55*eV, 15.20*eV
     };
     G4double VacuumRINDEX[2] =
     {
-        1.000, 1.000
+        1.0029, 1.0029
     };
     VacuumMPT->AddProperty("RINDEX", VacuumPP, VacuumRINDEX, 2);
     vacuum->SetMaterialPropertiesTable(VacuumMPT);
@@ -647,7 +875,7 @@ void NeutrinoDetectorConstruction::ConstructMaterials()
 
     // hamamatsu pmt photocathode
     density = 5. *g/cm3; // true??
-    Photocathode_mat_Ham3inch = new G4Material("photocathode_Ham20inch",density,1);
+    Photocathode_mat_Ham3inch = new G4Material("photocathode_Ham3inch",density,1);
     Photocathode_mat_Ham3inch->AddElement(K, 1);
     G4MaterialPropertiesTable* PhotocathodeMPT_Ham3inch = new G4MaterialPropertiesTable();
     PhotocathodeMPT_Ham3inch->AddProperty("RINDEX", fPP_PhC, fPhCRINDEX, 4);
@@ -668,6 +896,16 @@ void NeutrinoDetectorConstruction::ConstructMaterials()
     PhotocathodeMPT_MCP20inch->AddProperty("EFFICIENCY", fPP_PhCQE_AverageMCP20inch, fPhCEFFICIENCY_AverageMCP20inch, 43);
     PhotocathodeMPT_MCP20inch->AddProperty("THICKNESS", fPosZ, fTHICKNESS, 2);
     Photocathode_mat_MCP20inch->SetMaterialPropertiesTable(PhotocathodeMPT_MCP20inch);
+
+    // R7600U photocathode
+    density = 5. *g/cm3; // true??
+    Photocathode_mat_R7600U= new G4Material("photocathode_R7600U",density,1);
+    Photocathode_mat_R7600U->AddElement(K, 1);
+    G4MaterialPropertiesTable* PhotocathodeMPT_R7600U = new G4MaterialPropertiesTable();
+    PhotocathodeMPT_R7600U->AddProperty("RINDEX", fPP_PhC_NEW, fPhCRINDEX_NEW, 25);
+    PhotocathodeMPT_R7600U->AddProperty("EFFICIENCY", fPP_energy_QE_R7600U, fPP_QE_R7600U, 35);
+    PhotocathodeMPT_R7600U->AddProperty("THICKNESS", fPosZ, fTHICKNESS, 2);
+    Photocathode_mat_R7600U->SetMaterialPropertiesTable(PhotocathodeMPT_MCP20inch);
 
     // Acrylic
     density = 1.18*g/cm3;
@@ -705,7 +943,16 @@ void NeutrinoDetectorConstruction::ConstructMaterials()
 
     ESR->SetMaterialPropertiesTable(ESRMPT);
 
+    // Tyvek ( diffuse reflection )
+    Tyvek = new G4Material("Tyvek", 0.94*g/cm3, 2);
+    Tyvek->AddElement(C, 2);
+    Tyvek->AddElement(H, 4);
 
+    auto TyvekMPT = new G4MaterialPropertiesTable();
+    TyvekMPT->AddProperty("REFLECTIVITY", TyvekEnergyForReflectivity, TyvekReflectivity,31);
+    TyvekMPT->AddProperty("ABSLENGTH", TyvekEnergy, TyvekABSLength, 4);
+//    TyvekMPT->AddProperty("RINDEX", TyvekEnergyForReflectivity, ESRRefractionIndex, 31);
+    Tyvek->SetMaterialPropertiesTable(TyvekMPT);
 
     // quartz (SiO2, crystalline)
     density = 2.649 *g/cm3;
@@ -764,6 +1011,23 @@ void NeutrinoDetectorConstruction::ConstructMaterials()
     LSMPT->AddProperty("AlphaFASTTIMECONSTANT", component, GdLSAlphaFastTimeConstant,2);
     LSMPT->AddProperty("AlphaSLOWTIMECONSTANT", component, GdLSAlphaSlowTimeConstant,2);
     LSMPT->AddProperty("AlphaYIELDRATIO", component, GdLSAlphaYieldRatio,2);
+
+    // add dE/dx dependent time constant (added by luoxj)
+    LSMPT->AddProperty("N1CONSTANT", N1CONSTANT_Energy, N1CONSTANT_Value, 3);
+    LSMPT->AddProperty("N2CONSTANT", N2CONSTANT_Energy, N2CONSTANT_Value, 3);
+    LSMPT->AddProperty("N3CONSTANT", N3CONSTANT_Energy, N3CONSTANT_Value, 3);
+    LSMPT->AddProperty("tau1CONSTANT", tau1CONSTANT_Energy, tau1CONSTANT_Value,3);
+    LSMPT->AddProperty("tau2CONSTANT", tau2CONSTANT_Energy, tau2CONSTANT_Value,3);
+    LSMPT->AddProperty("tau3CONSTANT", tau3CONSTANT_Energy, tau3CONSTANT_Value,3);
+    LSMPT->AddProperty("OpticalCONSTANT", OpticalCONSTANT_Energy, OpticalCONSTANT_Value, 2);
+    LSMPT->AddProperty("InstantCONSTANT", InstantEmission_Energy, InstantEmission_Value, 2);
+
+    // add particle dependent time constants(v2)
+    LSMPT->AddProperty("NeutronCONSTANT", NeutronTimeConstant, NeutronYieldRatio,3);
+    LSMPT->AddProperty("GammaCONSTANT", GammaTimeConstant, GammaYieldRatio,3);
+    LSMPT->AddProperty("AlphaCONSTANT", AlphaTimeConstant, AlphaYieldRatio,3);
+
+
 
     // add fast/slow time constant for neutron
     LSMPT->AddProperty("NeutronFASTTIMECONSTANT", component, GdLSNeutronFastTimeConstant,2);
@@ -861,10 +1125,34 @@ void NeutrinoDetectorConstruction::ConstructSDandField()
     G4SDManager::GetSDMpointer()->AddNewDetector(Tracker_PMT_SD);
     SetSensitiveDetector("PMT_log", Tracker_PMT_SD);
 
+    G4String name_PMT_R7600U_SD = "PMT_log_R7600";
+    auto Tracker_PMT_R7600U_SD = new MyTrackerSD(name_PMT_R7600U_SD, "TrackerHitCollection_PMT_R7600U");
+    G4SDManager::GetSDMpointer()->AddNewDetector(Tracker_PMT_R7600U_SD);
+    SetSensitiveDetector("PMT_log_R7600", Tracker_PMT_R7600U_SD);
+
+    if (add_new_detector)
+    {
+        G4String name_Si_SD = "Si_log";
+        auto Tracker_Si_SD = new MyTrackerSD(name_Si_SD, "TrackerHitCollection_Si");
+        G4SDManager::GetSDMpointer()->AddNewDetector(Tracker_Si_SD);
+        SetSensitiveDetector("log_Si_detector", Tracker_Si_SD);
+    }
+
+    if (m_add_distance2PE_calib)
+    {
+        for (const auto & j : v_name_PMT_calib) {
+            G4String name_PMT_calib_SD = "PMT_" + j + "_calib_distance2PE_log";
+            auto Tracker_PMT_calib = new MyTrackerSD(name_PMT_calib_SD, "TrackerHitCollection_"+name_PMT_calib_SD);
+            G4SDManager::GetSDMpointer()->AddNewDetector(Tracker_PMT_calib);
+            SetSensitiveDetector(name_PMT_calib_SD, Tracker_PMT_calib);
+        }
+
+    }
+
 //
-//    G4String name_PMT_far_SD = "PMT_log_far";
-//    auto Tracker_PMT_far_SD = new MyTrackerSD(name_PMT_far_SD, "TrackerHitCollection_PMT_far");
-//    G4SDManager::GetSDMpointer()->AddNewDetector(Tracker_PMT_far_SD);
-//    SetSensitiveDetector("PMT_log_far", Tracker_PMT_far_SD);
+//    G4String name_PMT_near2_SD = "PMT_log_near2";
+//    auto Tracker_PMT_near2_SD = new MyTrackerSD(name_PMT_near2_SD, "TrackerHitCollection_PMT_near2");
+//    G4SDManager::GetSDMpointer()->AddNewDetector(Tracker_PMT_near2_SD);
+//    SetSensitiveDetector("PMT_log_near2", Tracker_PMT_near2_SD);
 }
 

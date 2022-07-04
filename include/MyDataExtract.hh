@@ -22,6 +22,8 @@ struct InformationToSave
     std::vector<int> step_pdgID;
     std::vector<int> step_trackID;
     std::vector<int> step_isCherenkov;
+    std::vector<int> step_ParentID;
+    std::vector<int> step_seed;
 
 
     InformationToSave(){};
