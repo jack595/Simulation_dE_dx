@@ -8,6 +8,7 @@
 #include "G4Event.hh"
 #include "../include/MyVDataExtract.hh"
 #include "../include/NeutrinoPrimaryGeneratorAction.hh"
+#include "MyCounterSD.hh"
 
 NeutrinoRunAction::NeutrinoRunAction()
 {
@@ -44,6 +45,7 @@ void NeutrinoRunAction::EndOfRunAction(const G4Run* aRun)
     MyVDataExtract data_extract;
     NeutrinoPrimaryGeneratorAction generator;
     generator.WriteTree();
+    MyCounterSD::WriteTTree();
     data_extract.Close();
 
 //    G4AnalysisManager* analysisManager = G4AnalysisManager::Instance();

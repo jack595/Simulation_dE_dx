@@ -61,7 +61,12 @@ void NeutrinoPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
             //fluorine
 //            G4int Z = 9, A = 18;
             // Sodium
-            G4int Z = 11, A = 22;
+//            G4int Z = 11, A = 22;
+//            G4double ionCharge   = 0.*eplus;
+//            G4double excitEnergy = 0.*keV;
+
+            // Bi207
+            G4int Z = 83, A = 207;
             G4double ionCharge   = 0.*eplus;
             G4double excitEnergy = 0.*keV;
 
@@ -97,7 +102,8 @@ void NeutrinoPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 
         fParticleGun->SetParticleMomentumDirection(G4ThreeVector(sintheta*cos(phi), sintheta*sin(phi), costheta));
         G4cout << "GdLS:\t"<< GdLS_r << "\t"<<GdLS_Length<<G4endl;
-        G4ThreeVector gen_vertex(GdLS_r*2*(G4UniformRand()-0.5), GdLS_Length*(G4UniformRand()-0.5) , GdLS_r*2*(G4UniformRand()-0.5));
+//        G4ThreeVector gen_vertex(GdLS_r*2*(G4UniformRand()-0.5), GdLS_Length*(G4UniformRand()-0.5+2) , GdLS_r*2*(G4UniformRand()-0.5));
+        G4ThreeVector gen_vertex(0, GdLS_Length , 0);
         G4cout<<"Vertex:\t"<<gen_vertex.getX()<<"\t"<<gen_vertex.getY()<<"\t"<<gen_vertex.getZ()<<G4endl;
 
         fParticleGun->SetParticlePosition(gen_vertex);

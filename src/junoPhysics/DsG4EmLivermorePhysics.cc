@@ -126,6 +126,7 @@
 #include "G4PhysicsConstructorFactory.hh"
 //
 //....oooOO0OOooo........oooOO0OOooo........oooOO0OOooo........oooOO0OOooo......
+#include "TTree.h"
 
 DsG4EmLivermorePhysics::DsG4EmLivermorePhysics(const G4String& name)
   : G4VPhysicsConstructor(name), verbose(1)
@@ -264,7 +265,7 @@ void DsG4EmLivermorePhysics::ConstructProcess()
       G4eIonisation* eIoni = new G4eIonisation();
       G4LivermoreIonisationModel* theIoniLivermore = new
         G4LivermoreIonisationModel();
-      theIoniLivermore->SetHighEnergyLimit(0.1*MeV); 
+      theIoniLivermore->SetHighEnergyLimit(0.1*MeV);
       eIoni->AddEmModel(0, theIoniLivermore, new G4UniversalFluctuation() );
       eIoni->SetStepFunction(0.2, 100*um); //     
       

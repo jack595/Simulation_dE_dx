@@ -9,6 +9,7 @@
 #include "G4OpBoundaryProcess.hh"
 #include "G4ProcessVector.hh"
 #include "G4ProcessManager.hh"
+#include "../include/NormalTrackInfo.hh"
 
 
 MyTrackerSD::MyTrackerSD(const G4String &name, const G4String &hitsCollectionName)
@@ -46,8 +47,12 @@ G4bool MyTrackerSD::ProcessHits(G4Step *aStep, G4TouchableHistory *)
     if(edep==0. && not name_SDHitsCollection.Contains("calib")   ) {
         return false;
     }
-    if (aStep->GetTrack()->GetParticleDefinition()->GetPDGEncoding()==20022 && name_SDHitsCollection.Contains("LS"))
+//    std::cout<< "SD Volume:\t"<< name_SDHitsCollection << std::endl;
+
+    if (aStep->GetTrack()->GetParticleDefinition()->GetPDGEncoding()==20022 && (name_SDHitsCollection.Contains("LS") ||name_SDHitsCollection.Contains("PSVol") ))
         return false;
+
+
     if (name_SDHitsCollection.Contains("PMT") and not name_SDHitsCollection.Contains("calib"))
     {
         // TODO: now it only support the single PE.
@@ -119,15 +124,23 @@ G4bool MyTrackerSD::ProcessHits(G4Step *aStep, G4TouchableHistory *)
     newHit->ParentID = aStep->GetTrack()->GetParentID();
     newHit->seed = seed_SD;
 
+    auto trackInfo = (NormalTrackInfo*)aStep->GetTrack()->GetUserInformation();
+    if (aStep->GetTrack()->GetParticleDefinition()->GetPDGEncoding()==20022)
+    {
+        std::vector<double> XYZ_GoOutLS = trackInfo->getXYZGoOutLS();
+        newHit->m_XYZ_GoOutLS = XYZ_GoOutLS;
+//        G4cout << "XYZ(Go Out of LS):\t" << XYZ_GoOutLS[0]<< "\t"<<
+//               XYZ_GoOutLS[1]<<"\t"<< XYZ_GoOutLS[2]<< G4endl;
+    }
+    newHit->isReemission = trackInfo->isReemission();
+    newHit->m_op_start_time = trackInfo->getOriginalOPStartTime();
+    newHit->isCherenkov = trackInfo->isFromCerenkov();
 
-//    if (newHit->GetTrackID()>1 && aStep->IsFirstStepInVolume())
-//        std::cout << "Creator Process:\t"<< aStep->GetTrack()->GetCreatorProcess()->GetProcessName()<<"\tPDG:\t"<<newHit->fpdgID << std::endl;
 
-
-    if (newHit->fpdgID==20022 && aStep->GetTrack()->GetCreatorProcess()->GetProcessName()=="Cerenkov")
-        newHit->isCherenkov = 1;
-    else
-        newHit->isCherenkov = 0;
+//    if (newHit->fpdgID==20022 && aStep->GetTrack()->GetCreatorProcess()->GetProcessName()=="Cerenkov")
+//        newHit->isCherenkov = 1;
+//    else
+//        newHit->isCherenkov = 0;
 
     fHitsCollection->insert(newHit);
 

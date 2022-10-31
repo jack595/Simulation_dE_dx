@@ -24,6 +24,7 @@
 #include "NeutrinoPrimaryGeneratorAction.hh"
 #include "TString.h"
 #include "MyTrackerSD.hh"
+#include "MyCounterSD.hh"
 
 //static variable initialization
 TFile*  MyVDataExtract::file_save_processed_data;
@@ -39,6 +40,14 @@ double NeutrinoPrimaryGeneratorAction::Energy_init;
 std::vector<double> NeutrinoPrimaryGeneratorAction::XYZ;
 int NeutrinoPrimaryGeneratorAction::m_evtID_gen;
 int MyTrackerSD::seed_SD;
+std::map<TString, TTree*> MyCounterSD::map_name2TTree;
+void MyCounterSD::WriteTTree()
+{
+//    for (auto tree_counter:v_tree_counter)
+//        tree_counter->Write();
+    for (const auto & [name, tree]:map_name2TTree)
+        tree->Write();
+}
 
 int main(int argc, char **argv){
 
@@ -46,8 +55,11 @@ int main(int argc, char **argv){
     char* macName = NULL;
     char* name_outfile = NULL;
     float L_LS = 3;// mm
+    float L_PS = 10; //mm
+    float LY_PS = 6000 ;// MeV
     float thickness_tank = 1; //mm
     float L_SpeedBump = 1;//cm
+    float shiftLength_RAYLEIGH = 0.;//m
     bool add_rad_source = false;
     float distance_PMT_near = 1; //cm
     bool optical = false;
@@ -56,6 +68,7 @@ int main(int argc, char **argv){
     float r_LS = 2.5; //cm
     bool add_ESR = false;
     bool add_calib = false;
+    bool turn_PS_into_LS = false;
 
     for(int i=1;i<argc;i++){
         if(strcmp(argv[i],"-seed") == 0){
@@ -76,11 +89,18 @@ int main(int argc, char **argv){
         }else if(strcmp(argv[i], "-L_LS") == 0 ){
             i++;
             L_LS = std::atof(argv[i]);
-        }else if(strcmp(argv[i], "-L_SpeedBump") == 0 )
+        }
+        else if(strcmp(argv[i], "-L_SpeedBump") == 0 )
         {
             i++;
             L_SpeedBump = std::atof(argv[i]);
-        }else if(strcmp(argv[i], "-AddSource")==0)
+        }
+        else if(strcmp(argv[i], "-ShiftLength_RAYLEIGH") == 0 )
+        {
+            i++;
+            shiftLength_RAYLEIGH = std::atof(argv[i]);
+        }
+        else if(strcmp(argv[i], "-AddSource")==0)
         {
             add_rad_source = true;
             G4cout << "Turn on add source mode!"<<G4endl;
@@ -115,6 +135,23 @@ int main(int argc, char **argv){
             add_calib = true;
             G4cout << "Turn on Calib Detector.." << G4endl;
         }
+        else if(strcmp(argv[i], "-PS_Into_LS")==0)
+        {
+            // Change Plastic Scintillator into Liquid Scintillator
+            // All the settings for PS still apply to LS sample
+            turn_PS_into_LS = true;
+            std::cout << "Turn PS into LS ...." << std::endl;
+        }
+        else if (strcmp(argv[i], "-L_PS") == 0 ){
+            i++;
+            L_PS = std::atof(argv[i]);
+        }
+         else if (strcmp(argv[i], "-LY_PS") == 0 ){
+            i++;
+            LY_PS = std::atof(argv[i]);
+        }
+
+
     }
 
     // ----------- Print Simulation Configures ---------------------------
@@ -122,6 +159,9 @@ int main(int argc, char **argv){
     G4cout << "Radius of LS:\t"<<r_LS<< " cm"<<G4endl;
     G4cout << "Thickness of Tank:\t"<<thickness_tank<<" mm"<<G4endl;
     G4cout << "d_PMT_near:\t" << distance_PMT_near<<" cm" << G4endl;
+    G4cout << "Thickness of PS:\t" << L_PS << "mm"<< G4endl;
+    G4cout << "LY of PS :\t"<< LY_PS << "/MeV" << G4endl;
+    if (not turn_PS_into_LS) G4cout << "Using PS ...." << G4endl;
 
 
 
@@ -132,7 +172,10 @@ int main(int argc, char **argv){
     // detector
     NeutrinoDetectorConstruction* detectorConstruction = new NeutrinoDetectorConstruction();
     detectorConstruction->SetLengthOfLS(L_LS);
+    detectorConstruction->SetLengthOfPS(L_PS);
+    detectorConstruction->SetShiftLengthOfRAYLEIGH(shiftLength_RAYLEIGH);
     detectorConstruction->SetLengthOfSpeedBump(L_SpeedBump);
+    detectorConstruction->SetTurnPSintoLS(turn_PS_into_LS);
     detectorConstruction->SetAddESR(add_ESR);
     detectorConstruction->SetAddCalib(add_calib);
     detectorConstruction->SetDistanceOfNearPMT(distance_PMT_near);
@@ -140,6 +183,7 @@ int main(int argc, char **argv){
     detectorConstruction->WhetherTurnOnTank(use_tank);
     detectorConstruction->WhetherUseQuartz(use_quartz);
     detectorConstruction->SetRofLS(r_LS);
+    detectorConstruction->SetLightYieldOfPS(LY_PS);
     runManager->SetUserInitialization(detectorConstruction);
 
     MyTrackerSD::seed_SD = seed;

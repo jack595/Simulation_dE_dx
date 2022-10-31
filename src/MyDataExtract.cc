@@ -66,6 +66,12 @@ void MyDataExtract::SetBranches()
         {
             v_trees[i]->Branch("step_isCherenkov", &v_information_to_save[i].step_isCherenkov);
             v_trees[i]->Branch("step_seed", &v_information_to_save[i].step_seed);
+            v_trees[i]->Branch("step_isReemission", &v_information_to_save[i].step_isReemission);
+            v_trees[i]->Branch("step_op_start_time", &v_information_to_save[i].step_op_start_time);
+            v_trees[i]->Branch("step_X_GoOutLS", &v_information_to_save[i].step_X_GoOutLS);
+            v_trees[i]->Branch("step_Y_GoOutLS", &v_information_to_save[i].step_Y_GoOutLS);
+            v_trees[i]->Branch("step_Z_GoOutLS", &v_information_to_save[i].step_Z_GoOutLS);
+
         }
         else
         {
@@ -92,8 +98,15 @@ void MyDataExtract::ResetVariable() {
         v_information_to_save[i].step_dx.clear();
         v_information_to_save[i].step_Chamber_ID.clear();
         v_information_to_save[i].step_isCherenkov.clear();
+        v_information_to_save[i].step_isReemission.clear();
+        v_information_to_save[i].step_op_start_time.clear();
         v_information_to_save[i].step_ParentID.clear();
         v_information_to_save[i].step_seed.clear();
+
+        v_information_to_save[i].step_X_GoOutLS.clear();
+        v_information_to_save[i].step_Y_GoOutLS.clear();
+        v_information_to_save[i].step_Z_GoOutLS.clear();
+
     }
 }
 
@@ -114,6 +127,7 @@ void MyDataExtract::ResetVariable() {
 
             for(int j=0;j<fHitsCollection->entries();j++)
             {
+
                 auto hit = (*fHitsCollection)[j];
                 v_information_to_save[i].step_x.push_back(hit->GetPos()[0]);
                 v_information_to_save[i].step_y.push_back(hit->GetPos()[1]);
@@ -127,8 +141,14 @@ void MyDataExtract::ResetVariable() {
                 v_information_to_save[i].step_dx.push_back(hit->fStepLength);
                 v_information_to_save[i].step_Chamber_ID.push_back(hit->GetChamberNb());
                 v_information_to_save[i].step_isCherenkov.push_back(hit->isCherenkov);
+                v_information_to_save[i].step_isReemission.push_back(hit->isReemission);
+                v_information_to_save[i].step_op_start_time.push_back(hit->m_op_start_time);
                 v_information_to_save[i].step_ParentID.push_back(hit->ParentID);
                 v_information_to_save[i].step_seed.push_back(hit->seed);
+
+                v_information_to_save[i].step_X_GoOutLS.push_back(hit->m_XYZ_GoOutLS[0]);
+                v_information_to_save[i].step_Y_GoOutLS.push_back(hit->m_XYZ_GoOutLS[1]);
+                v_information_to_save[i].step_Z_GoOutLS.push_back(hit->m_XYZ_GoOutLS[2]);
             }
 
             }

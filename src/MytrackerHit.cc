@@ -8,7 +8,9 @@
 G4ThreadLocal G4Allocator<MytrackerHit>* MyTrackerHitAllocator=0;
 
 MytrackerHit::MytrackerHit()
-    :G4VHit(),fTrackID(-1),fChamberNb(-1),fEdep(0.),fPos(G4ThreeVector()){}
+    :G4VHit(),fTrackID(-1),fChamberNb(-1),fEdep(0.),fPos(G4ThreeVector()){
+    m_XYZ_GoOutLS = std::vector<double> {0.,0., 0.};
+}
 
 MytrackerHit::MytrackerHit(const MytrackerHit & right)
     :G4VHit()

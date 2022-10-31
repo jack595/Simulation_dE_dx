@@ -272,6 +272,7 @@
   
   //double GdLSLY[2] = {10129/MeV, 10129/MeV};
   double GdLSLY[2] = {11522/MeV, 11522/MeV};
+//  double GdLSLY[2] = {115/MeV, 115/MeV};
   //double GdLSLY[2] = {12144/MeV, 12144/MeV};
 
 double GdLSResolutionScale[2] = {1.0, 1.0};
@@ -300,6 +301,22 @@ double GdLSResolutionScale[2] = {1.0, 1.0};
   double tau2CONSTANT_Value[3] = {20.6,34,35};
   double tau3CONSTANT_Energy[3] = {0.6747912*MeV/mm,29.574236*MeV/mm,122.773224*MeV/mm};
   double tau3CONSTANT_Value[3] = {190,220,220};
+
+  // ----------Added by Luoxj ------------------
+  // For PS time constant
+  double N1CONSTANT_Energy_PS[3] = {0.6747912*MeV/mm, 29.574*MeV/mm, 122.773*MeV/mm};
+  double N1CONSTANT_Value_PS[3] = {1., 1., 1.};
+  double N2CONSTANT_Energy_PS[3] = {0.6747912*MeV/mm,29.574236*MeV/mm,122.773224*MeV/mm};
+  double N2CONSTANT_Value_PS[3] = {0., 0., 0.};
+  double N3CONSTANT_Energy_PS[3] = {0.6747912*MeV/mm,29.574236*MeV/mm,122.773224*MeV/mm};
+  double N3CONSTANT_Value_PS[3] = {0., 0., 0.};
+
+  double tau1CONSTANT_Energy_PS[3] = {0.6747912*MeV/mm,29.574236*MeV/mm,122.773224*MeV/mm};
+  double tau1CONSTANT_Value_PS[3] = {3.6, 3.6, 3.6};
+  double tau2CONSTANT_Energy_PS[3]  = {0.6747912*MeV/mm,29.574236*MeV/mm,122.773224*MeV/mm};
+  double tau2CONSTANT_Value_PS[3] = {20.6,34,35};
+  double tau3CONSTANT_Energy_PS[3] = {0.6747912*MeV/mm,29.574236*MeV/mm,122.773224*MeV/mm};
+  double tau3CONSTANT_Value_PS[3] = {190,220,220};
 
   // Lastest version
   double OpticalCONSTANT_Energy[2] = {1.5*ns, 1.5*ns};
@@ -4192,6 +4209,37 @@ double AcrylicAbsLength[25] = {
 8.0e-3*mm
   };
 
+  double OpaqueAcrylicAbsLength[25] = {
+          1. *mm,
+          1. *mm,
+          1. *mm,
+          1. *mm,
+
+
+          1. *mm,
+          1. *mm,
+          1. *mm,
+          1. *mm,
+          1. *mm,
+          1. *mm,
+          1.*mm,
+          1.*mm,
+          1.*mm,
+          1.*mm,
+          1.*mm,
+          1.*mm,
+          1.*mm,
+          1.*mm,
+          1.*mm,
+          1.*mm,
+          1.*mm,
+          1.*mm,
+
+
+          8.0e-3*mm,
+          8.0e-3*mm,
+          8.0e-3*mm
+  };
  // PVC
  double PVCRefEnergy[98] = {
          0.904994069*eV,
@@ -4395,6 +4443,111 @@ double AcrylicAbsLength[25] = {
          1.56135,
 
  };
+
+  // PS
+  double fPP_PS_RINDEX[12] = {
+          3.26*eV,
+          3.1*eV,
+          3.02*eV,
+          2.95*eV,
+          2.93*eV,
+          2.82*eV,
+          2.76*eV,
+          2.7*eV,
+          2.58*eV,
+          2.48*eV,
+          2.38*eV,
+          2.08*eV
+  };
+
+  double PS_RINDEX[12] = {
+          1.58,
+          1.58,
+          1.58,
+          1.58,
+          1.58,
+          1.58,
+          1.58,
+          1.58,
+          1.58,
+          1.58,
+          1.58,
+          1.58
+  };
+
+  double fPP_PS_ABS[12] = {
+          3.26*eV,
+          3.10*eV,
+          3.02*eV,
+          2.95*eV,
+          2.93*eV,
+          2.82*eV,
+          2.76*eV,
+          2.70*eV,
+          2.58*eV,
+          2.48*eV,
+          2.38*eV,
+          2.08*eV
+  };
+
+  double PS_ABS[12] = {
+          256*cm,
+          255*cm,
+          254*cm,
+          254*cm,
+          254*cm,
+          253*cm,
+          253*cm,
+          253*cm,
+          252*cm,
+          252*cm,
+          252*cm,
+          251*cm
+  };
+
+  double fPP_PS_FAST[12] = {
+          3.26*eV,
+          3.10*eV,
+          3.02*eV,
+          2.95*eV,
+          2.93*eV,
+          2.82*eV,
+          2.76*eV,
+          2.70*eV,
+          2.58*eV,
+          2.48*eV,
+          2.38*eV,
+          2.08*eV
+  };
+
+  double PS_FAST[12] = {
+          0,
+          0.07,
+          0.23,
+          0.93,
+          1.00,
+          0.69,
+          0.55,
+          0.35,
+          0.26,
+          0.18,
+          0.11,
+          0
+  };
+
+  double fPP_PS_SLOW[2] = {
+          3.26*eV,
+          2.08*eV
+
+  };
+
+  double PS_SLOW[2] = {
+          0,
+          0
+  };
+
+
+
   // Quartz
   double QuartzRefEnergy[101] = {
           0.185051026*eV,
@@ -5025,6 +5178,10 @@ double AcrylicAbsLength[25] = {
   };
 
   double AirRefIndex[4] = {1.000273, 1.000273, 1.000273, 1.000273};
+
+  double AbsorptionSurfaceEnergy[2] = {1.55*eV, 15.5*eV};
+  double AbsorptionSurfaceAbS[2] = {10e3*mm, 10e3*mm};
+  double AbsorptionSurfaceReflectivity[2] = {0., 0. };
 
   double TyvekEnergy[4] = {1.55*eV, 6.20*eV, 10.33*eV, 15.5*eV};
   double TyvekABSLength[4] = {10e3*mm, 10e3*mm, 10e3*mm, 10e3*mm};
