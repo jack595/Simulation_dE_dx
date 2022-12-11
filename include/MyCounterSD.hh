@@ -25,6 +25,13 @@ public:
 
 private:
     std::vector<unsigned long int> v_n_hits;
+
+    // Record hit position
+    std::vector<float> v_x_hits;
+    std::vector<float> v_y_hits;
+    std::vector<float> v_z_hits;
+    std::vector<int> v_chamberID_hits;
+
     TString name_SDHitsCollection;
     static std::map<TString, TTree*> map_name2TTree;
 };

@@ -21,6 +21,10 @@ MyCounterSD::MyCounterSD(const G4String &name, const G4String &hitsCollectionNam
     gROOT->ProcessLine("#include <vector>");
     map_name2TTree.insert(std::pair<TString, TTree*>(name_SDHitsCollection, new TTree(name_SDHitsCollection, name_SDHitsCollection)));
     map_name2TTree.at(name_SDHitsCollection)->Branch("v_n_hits", &v_n_hits);
+    map_name2TTree.at(name_SDHitsCollection)->Branch("v_x_hits", &v_x_hits);
+    map_name2TTree.at(name_SDHitsCollection)->Branch("v_y_hits", &v_y_hits);
+    map_name2TTree.at(name_SDHitsCollection)->Branch("v_z_hits", &v_z_hits);
+    map_name2TTree.at(name_SDHitsCollection)->Branch("v_chamberID_hits", &v_chamberID_hits);
 
 }
 
@@ -31,6 +35,10 @@ MyCounterSD::~MyCounterSD()
 void MyCounterSD::Initialize(G4HCofThisEvent *hitsCollection)
 {
     v_n_hits.clear();
+    v_x_hits.clear();
+    v_y_hits.clear();
+    v_z_hits.clear();
+    v_chamberID_hits.clear();
 }
 
 G4bool MyCounterSD::ProcessHits(G4Step *aStep, G4TouchableHistory *)
@@ -100,9 +108,16 @@ G4bool MyCounterSD::ProcessHits(G4Step *aStep, G4TouchableHistory *)
     // Count N of Hits in SD
     if (chamberID+1>v_n_hits.size())
         v_n_hits.push_back(0);
-    else
-        v_n_hits[chamberID] += 1;
+    int pdgID =  aStep->GetTrack()->GetParticleDefinition()->GetPDGEncoding();
 
+    if (aStep->IsFirstStepInVolume() and pdgID==20022)
+    {
+        v_n_hits[chamberID] += 1;
+        v_x_hits.push_back(aStep->GetPreStepPoint()->GetPosition().getX());
+        v_y_hits.push_back(aStep->GetPreStepPoint()->GetPosition().getY());
+        v_z_hits.push_back(aStep->GetPreStepPoint()->GetPosition().getZ());
+        v_chamberID_hits.push_back(chamberID);
+    }
 //    std::cout<< "Length:\t" << v_n_hits.size() << std::endl;
 //    std::cout<< "ChamberID:\t" << chamberID << std::endl;
 //    std::cout<< "n_hits:\n" ;

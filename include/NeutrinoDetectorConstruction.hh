@@ -45,6 +45,7 @@ class NeutrinoDetectorConstruction : public G4VUserDetectorConstruction
         void SetShiftLengthOfRAYLEIGH(float shiftLengthRAYLEIGH) {m_shiftLengthRAYLEIGH = shiftLengthRAYLEIGH;}
         void SetTurnPSintoLS(bool turnPSintoLS) {m_turn_PS_into_LS = turnPSintoLS;}
         void SetLightYieldOfPS(float YL_PS) {m_LY_PS = YL_PS;}
+        void SetLightYieldOfLS(float YL_LS) {m_LY_LS = YL_LS;}
 
     MyDataExtract* data_extract;
 
@@ -112,6 +113,7 @@ class NeutrinoDetectorConstruction : public G4VUserDetectorConstruction
         float m_GdLS_r;
         float m_thickness_PS;
         float m_LY_PS;
+        float m_LY_LS;
 
 
 
