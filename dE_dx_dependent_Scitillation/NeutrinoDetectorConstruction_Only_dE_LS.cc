@@ -319,8 +319,6 @@ void NeutrinoDetectorConstruction::ConstructDetector()
                                             R_Si_detector,
                                             R_Si_detector);
 
-
-
         auto log_Si_detector = new G4LogicalVolume(solid_Si_detector,
                                                         Acrylic,
                                                         "log_Si_detector");

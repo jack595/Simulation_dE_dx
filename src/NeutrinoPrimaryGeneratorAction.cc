@@ -67,6 +67,8 @@ void NeutrinoPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
 
             // Bi207
             G4int Z = 83, A = 207;
+            // Cs137
+//            G4int Z = 55, A = 137;
             G4double ionCharge   = 0.*eplus;
             G4double excitEnergy = 0.*keV;
 
@@ -76,34 +78,35 @@ void NeutrinoPrimaryGeneratorAction::GeneratePrimaries(G4Event* anEvent)
             fParticleGun->SetParticleCharge(ionCharge);
         }
 
-        if (!f_LS)
-        {
-            G4LogicalVolume* envLV
-                    = G4LogicalVolumeStore::GetInstance()->GetVolume("GdLS_log");
-            if ( envLV ) f_LS = dynamic_cast<G4Box*>(envLV->GetSolid());
-        }
+//        if (!f_LS)
+//        {
+//            G4LogicalVolume* envLV
+//                    = G4LogicalVolumeStore::GetInstance()->GetVolume("GdLS_log");
+//            if ( envLV ) f_LS = dynamic_cast<G4Box*>(envLV->GetSolid());
+//        }
 
-        if ( f_LS ) {
-            GdLS_Length = 2*f_LS->GetYHalfLength();
-            GdLS_r = f_LS->GetXHalfLength();
-        }
-        else  {
-            G4ExceptionDescription msg;
-            msg << "Envelope volume of box shape not found.\n";
-            msg << "Perhaps you have changed geometry.\n";
-            msg << "The gun will be place at the center.";
-            G4Exception("B1PrimaryGeneratorAction::GeneratePrimaries()",
-                        "MyCode0002",JustWarning,msg);
-        }
+//        if ( f_LS ) {
+//            GdLS_Length = 2*f_LS->GetYHalfLength();
+//            GdLS_r = f_LS->GetXHalfLength();
+//        }
+//        else  {
+//            G4ExceptionDescription msg;
+//            msg << "Envelope volume of box shape not found.\n";
+//            msg << "Perhaps you have changed geometry.\n";
+//            msg << "The gun will be place at the center.";
+//            G4Exception("B1PrimaryGeneratorAction::GeneratePrimaries()",
+//                        "MyCode0002",JustWarning,msg);
+//        }
 
         G4double costheta = 1.0 - 2.0*G4UniformRand();
         G4double sintheta = sqrt(1 - costheta*costheta);
         G4double phi = 360.0*G4UniformRand()*degree;
 
         fParticleGun->SetParticleMomentumDirection(G4ThreeVector(sintheta*cos(phi), sintheta*sin(phi), costheta));
-        G4cout << "GdLS:\t"<< GdLS_r << "\t"<<GdLS_Length<<G4endl;
+//        G4cout << "GdLS:\t"<< GdLS_r << "\t"<<GdLS_Length<<G4endl;
 //        G4ThreeVector gen_vertex(GdLS_r*2*(G4UniformRand()-0.5), GdLS_Length*(G4UniformRand()-0.5+2) , GdLS_r*2*(G4UniformRand()-0.5));
-        G4ThreeVector gen_vertex(0, GdLS_Length , 0);
+//        G4ThreeVector gen_vertex(0, GdLS_Length , 0);
+        G4ThreeVector gen_vertex(0, -30*cm , 3.8*cm);
         G4cout<<"Vertex:\t"<<gen_vertex.getX()<<"\t"<<gen_vertex.getY()<<"\t"<<gen_vertex.getZ()<<G4endl;
 
         fParticleGun->SetParticlePosition(gen_vertex);

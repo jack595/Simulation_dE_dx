@@ -117,6 +117,7 @@ class NeutrinoDetectorConstruction : public G4VUserDetectorConstruction
 
 
 
+
         G4bool fCheckOverlaps;
 };
 

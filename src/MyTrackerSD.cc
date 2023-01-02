@@ -10,7 +10,20 @@
 #include "G4ProcessVector.hh"
 #include "G4ProcessManager.hh"
 #include "../include/NormalTrackInfo.hh"
+int EncodingProcessName(std::string name_process)
+{
+    if (name_process=="eIoni")
+        return 0;
+    if (name_process=="phot")
+        return 1;
+    else if (name_process=="compt")
+        return 2;
+    else if (name_process=="conv")
+        return 3;
+    else
+        return -1;
 
+}
 
 MyTrackerSD::MyTrackerSD(const G4String &name, const G4String &hitsCollectionName)
     :G4VSensitiveDetector(name),fHitsCollection(NULL)
@@ -123,6 +136,14 @@ G4bool MyTrackerSD::ProcessHits(G4Step *aStep, G4TouchableHistory *)
     newHit->fKineticE = aStep->GetPreStepPoint()->GetKineticEnergy();
     newHit->ParentID = aStep->GetTrack()->GetParentID();
     newHit->seed = seed_SD;
+    auto process = aStep->GetTrack()->GetCreatorProcess();
+    if (process) {
+        newHit->m_GammaCreateProcess = EncodingProcessName(process->GetProcessName());
+//        std::cout << process->GetProcessName() << std::endl;
+    }
+    else
+        newHit->m_GammaCreateProcess = -1;
+//    newHit->m_GammaCreateProcess
 
     auto trackInfo = (NormalTrackInfo*)aStep->GetTrack()->GetUserInformation();
     if (aStep->GetTrack()->GetParticleDefinition()->GetPDGEncoding()==20022)

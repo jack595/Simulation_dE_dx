@@ -58,6 +58,7 @@ public:
       int           seed;
       int           isReemission;
       G4double      m_op_start_time;
+      int           m_GammaCreateProcess; // num for recording create process
       std::vector<double> m_XYZ_GoOutLS;
 
 };

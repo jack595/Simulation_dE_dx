@@ -26,10 +26,12 @@ struct InformationToSave
     std::vector<int> step_ParentID;
     std::vector<int> step_seed;
     std::vector<int> step_isReemission;
+    std::vector<int> step_processName;
 
     std::vector<double> step_X_GoOutLS;
     std::vector<double> step_Y_GoOutLS;
     std::vector<double> step_Z_GoOutLS;
+
 
 
 

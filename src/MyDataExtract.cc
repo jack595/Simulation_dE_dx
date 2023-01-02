@@ -78,6 +78,7 @@ void MyDataExtract::SetBranches()
             v_trees[i]->Branch("step_dx", &v_information_to_save[i].step_dx);
             v_trees[i]->Branch("step_Edep", &v_information_to_save[i].step_Edep);
             v_trees[i]->Branch("step_Equench", &v_information_to_save[i].step_Equench);
+            v_trees[i]->Branch("step_processName", &v_information_to_save[i].step_processName);
         }
 
     }
@@ -106,6 +107,7 @@ void MyDataExtract::ResetVariable() {
         v_information_to_save[i].step_X_GoOutLS.clear();
         v_information_to_save[i].step_Y_GoOutLS.clear();
         v_information_to_save[i].step_Z_GoOutLS.clear();
+        v_information_to_save[i].step_processName.clear();
 
     }
 }
@@ -149,6 +151,8 @@ void MyDataExtract::ResetVariable() {
                 v_information_to_save[i].step_X_GoOutLS.push_back(hit->m_XYZ_GoOutLS[0]);
                 v_information_to_save[i].step_Y_GoOutLS.push_back(hit->m_XYZ_GoOutLS[1]);
                 v_information_to_save[i].step_Z_GoOutLS.push_back(hit->m_XYZ_GoOutLS[2]);
+                v_information_to_save[i].step_processName.push_back(hit->m_GammaCreateProcess);
+
             }
 
             }
